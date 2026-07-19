@@ -13,11 +13,30 @@ import {
   resetDeck,
   reviewCard,
   saveDeck,
+  upcomingByDay,
+  updateCard,
 } from "@/lib/srsStore";
 import { applySrsBackup, downloadSrsBackup, parseSrsBackup } from "@/lib/srsBackup";
-import { currentStreak, loadStreak, markReviewDay } from "@/lib/srsStreak";
+import {
+  currentStreak,
+  loadStreak,
+  markReviewDay,
+  weekActivity,
+} from "@/lib/srsStreak";
 
 type Phase = "ready" | "front" | "back" | "done";
+
+type UndoSnap = {
+  deck: SrsCard[];
+  queue: SrsCard[];
+  score: number;
+  doneCount: number;
+  requeued: Set<string>;
+  phase: Phase;
+  flipped: boolean;
+};
+
+const LIMIT_KEY = "pamyat10-srs-session-limit";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -35,6 +54,12 @@ function filterDue(deck: SrsCard[], tag: string, hardOnly: boolean): SrsCard[] {
   return due;
 }
 
+function weekdayShort(dateKey: string): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const names = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
+  return names[new Date(y, m - 1, d).getDay()];
+}
+
 export default function LongtermTrainer() {
   const [deck, setDeck] = useState<SrsCard[]>([]);
   const [queue, setQueue] = useState<SrsCard[]>([]);
@@ -48,42 +73,74 @@ export default function LongtermTrainer() {
   const [tagInput, setTagInput] = useState("");
   const [filterTag, setFilterTag] = useState("");
   const [hardOnly, setHardOnly] = useState(false);
+  const [sessionLimit, setSessionLimit] = useState(0);
   const [showList, setShowList] = useState(false);
   const [backupMsg, setBackupMsg] = useState<string | null>(null);
   const [backupErr, setBackupErr] = useState<string | null>(null);
   const [streak, setStreak] = useState(0);
-  /** Карточки, уже один раз вернувшиеся в сессию после «забыл» */
+  const [activity, setActivity] = useState(() => weekActivity({}));
   const [requeued, setRequeued] = useState<Set<string>>(() => new Set());
+  const [undo, setUndo] = useState<UndoSnap | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editFront, setEditFront] = useState("");
+  const [editBack, setEditBack] = useState("");
+  const [editTag, setEditTag] = useState("");
 
   useEffect(() => {
     setDeck(loadDeck());
-    setStreak(currentStreak(loadStreak().days));
+    const s = loadStreak();
+    setStreak(currentStreak(s.days));
+    setActivity(weekActivity(s.counts));
+    try {
+      const lim = Number(localStorage.getItem(LIMIT_KEY) || "0");
+      if ([0, 5, 10, 20].includes(lim)) setSessionLimit(lim);
+    } catch {
+      /* ignore */
+    }
     setReady(true);
   }, []);
 
   const tags = useMemo(() => (ready ? listTags(deck) : []), [deck, ready]);
-  const dueToday = useMemo(
+  const dueFiltered = useMemo(
     () => (ready ? filterDue(deck, filterTag, hardOnly) : []),
     [deck, ready, filterTag, hardOnly],
   );
+  const dueToday = useMemo(() => {
+    if (sessionLimit > 0) return dueFiltered.slice(0, sessionLimit);
+    return dueFiltered;
+  }, [dueFiltered, sessionLimit]);
   const stats = useMemo(
     () => (ready ? deckStats(deck) : { total: 0, due: 0, strong: 0, hard: 0 }),
     [deck, ready],
   );
+  const upcoming = useMemo(() => (ready ? upcomingByDay(deck, 7) : []), [deck, ready]);
   const current = queue[0] ?? null;
+  const maxBar = Math.max(1, ...activity.map((a) => a.count));
+
+  function refreshStreakUi(s = loadStreak()) {
+    setStreak(currentStreak(s.days));
+    setActivity(weekActivity(s.counts));
+  }
+
+  function changeLimit(value: number) {
+    setSessionLimit(value);
+    localStorage.setItem(LIMIT_KEY, String(value));
+  }
 
   function start() {
-    const due = filterDue(loadDeck(), filterTag, hardOnly);
+    let due = shuffle(filterDue(loadDeck(), filterTag, hardOnly));
+    if (sessionLimit > 0) due = due.slice(0, sessionLimit);
     if (due.length === 0) {
       setPhase("done");
       setQueue([]);
       return;
     }
-    setQueue(shuffle(due));
+    setQueue(due);
     setFlipped(false);
     setDoneCount(0);
     setScore(0);
     setRequeued(new Set());
+    setUndo(null);
     setPhase("front");
   }
 
@@ -94,6 +151,16 @@ export default function LongtermTrainer() {
 
   function answer(remembered: boolean) {
     if (!current) return;
+    setUndo({
+      deck: structuredClone(deck),
+      queue: [...queue],
+      score,
+      doneCount,
+      requeued: new Set(requeued),
+      phase,
+      flipped,
+    });
+
     const updated = reviewCard(current, remembered);
     const nextDeck = deck.map((c) => (c.id === updated.id ? updated : c));
     setDeck(nextDeck);
@@ -104,7 +171,7 @@ export default function LongtermTrainer() {
     setScore(nextScore);
     setDoneCount((n) => n + 1);
     recordSession("longterm", nextScore);
-    setStreak(currentStreak(markReviewDay().days));
+    refreshStreakUi(markReviewDay());
 
     let rest = queue.slice(1);
     if (!remembered && !requeued.has(current.id)) {
@@ -122,10 +189,28 @@ export default function LongtermTrainer() {
     setPhase("front");
   }
 
+  function undoLast() {
+    if (!undo) return;
+    setDeck(undo.deck);
+    saveDeck(undo.deck);
+    setQueue(undo.queue);
+    setScore(undo.score);
+    setDoneCount(undo.doneCount);
+    setRequeued(undo.requeued);
+    setPhase(undo.phase);
+    setFlipped(undo.flipped);
+    setUndo(null);
+  }
+
   useEffect(() => {
     if (phase !== "front" && phase !== "back") return;
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if ((e.key === "z" || e.key === "Z" || e.key === "я" || e.key === "Я") && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        undoLast();
+        return;
+      }
       if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
         if (phase === "front") showBack();
@@ -144,7 +229,7 @@ export default function LongtermTrainer() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, current, queue, deck, score, doneCount, requeued]);
+  }, [phase, current, queue, deck, score, doneCount, requeued, undo]);
 
   function onReset() {
     if (!window.confirm("Сбросить прогресс и вернуть стартовую колоду?")) return;
@@ -154,6 +239,7 @@ export default function LongtermTrainer() {
     setScore(0);
     setDoneCount(0);
     setRequeued(new Set());
+    setUndo(null);
     setFilterTag("");
     setHardOnly(false);
   }
@@ -169,7 +255,22 @@ export default function LongtermTrainer() {
 
   function onRemove(id: string) {
     if (!window.confirm("Удалить эту карточку?")) return;
+    if (editId === id) setEditId(null);
     setDeck(removeCard(id));
+  }
+
+  function beginEdit(c: SrsCard) {
+    setEditId(c.id);
+    setEditFront(c.front);
+    setEditBack(c.back);
+    setEditTag(c.tag ?? "");
+  }
+
+  function saveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editId || !editFront.trim() || !editBack.trim()) return;
+    setDeck(updateCard(editId, { front: editFront, back: editBack, tag: editTag }));
+    setEditId(null);
   }
 
   return (
@@ -207,9 +308,9 @@ export default function LongtermTrainer() {
         {phase === "ready" && (
           <div className="space-y-4">
             <p className="text-sm leading-relaxed text-[var(--muted)]">
-              Смотрите вопрос, вспоминаете, отмечаете «помню» или «забыл». Можно сузить сессию по
-              теме или взять только сложные карточки. Клавиши: пробел — ответ, 1 — забыл, 2 —
-              помню.
+              Смотрите вопрос, вспоминаете, отмечаете «помню» или «забыл». Можно ограничить длину
+              сессии, тему или взять только сложные. Клавиши: пробел — ответ, 1 — забыл, 2 — помню,
+              Ctrl+Z — отмена.
             </p>
 
             {ready ? (
@@ -229,6 +330,19 @@ export default function LongtermTrainer() {
                     ))}
                   </select>
                 </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <span className="text-[var(--muted)]">Лимит</span>
+                  <select
+                    value={sessionLimit}
+                    onChange={(e) => changeLimit(Number(e.target.value))}
+                    className="rounded-full border border-[var(--line)] bg-[var(--bg)] px-3 py-1.5 outline-none focus:border-[var(--accent)]"
+                  >
+                    <option value={0}>Все</option>
+                    <option value={5}>5 карточек</option>
+                    <option value={10}>10 карточек</option>
+                    <option value={20}>20 карточек</option>
+                  </select>
+                </label>
                 <label className="flex cursor-pointer items-center gap-2 text-sm">
                   <input
                     type="checkbox"
@@ -243,7 +357,7 @@ export default function LongtermTrainer() {
 
             {!ready ? (
               <p className="text-sm text-[var(--muted)]">Загрузка колоды…</p>
-            ) : dueToday.length === 0 ? (
+            ) : dueFiltered.length === 0 ? (
               <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
                 {hardOnly || filterTag
                   ? "По выбранному фильтру сегодня повторять нечего. Снимите фильтр или зайдите завтра."
@@ -255,10 +369,57 @@ export default function LongtermTrainer() {
                 onClick={start}
                 className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
               >
-                Повторить {dueToday.length}{" "}
+                Повторить {dueToday.length}
+                {sessionLimit > 0 && dueFiltered.length > sessionLimit
+                  ? ` из ${dueFiltered.length}`
+                  : ""}{" "}
                 {dueToday.length === 1 ? "карточку" : dueToday.length < 5 ? "карточки" : "карточек"}
               </button>
             )}
+
+            {ready ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+                    Активность · 7 дней
+                  </p>
+                  <div className="flex h-20 items-end gap-1.5">
+                    {activity.map((a) => (
+                      <div key={a.date} className="flex flex-1 flex-col items-center gap-1">
+                        <div
+                          className="w-full rounded-t-md bg-[var(--accent)]/80"
+                          style={{
+                            height: `${Math.max(a.count > 0 ? 12 : 4, (a.count / maxBar) * 64)}px`,
+                          }}
+                          title={`${a.date}: ${a.count}`}
+                        />
+                        <span className="text-[10px] text-[var(--muted)]">{a.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+                    Расписание · 7 дней
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {upcoming.map((u, i) => (
+                      <span
+                        key={u.date}
+                        className={`rounded-full px-2.5 py-1 text-xs ${
+                          i === 0
+                            ? "bg-[var(--accent)] text-white"
+                            : "bg-[var(--accent-soft)] text-[var(--accent)]"
+                        }`}
+                      >
+                        {i === 0 ? "сегодня" : weekdayShort(u.date)}: {u.count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
             {ready ? (
               <div className="flex flex-wrap gap-4 text-sm">
                 <button
@@ -282,12 +443,23 @@ export default function LongtermTrainer() {
 
         {(phase === "front" || phase === "back") && current && (
           <div className="space-y-4">
-            <p className="text-xs text-[var(--muted)]">
-              {doneCount + 1} из {doneCount + queue.length} · интервал: {current.intervalDays || 0}{" "}
-              дн.
-              {current.tag ? ` · ${current.tag}` : ""}
-              {(current.fails ?? 0) > 0 ? ` · забывали: ${current.fails}` : ""} · {todayKey()}
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-[var(--muted)]">
+                {doneCount + 1} из {doneCount + queue.length} · интервал:{" "}
+                {current.intervalDays || 0} дн.
+                {current.tag ? ` · ${current.tag}` : ""}
+                {(current.fails ?? 0) > 0 ? ` · забывали: ${current.fails}` : ""} · {todayKey()}
+              </p>
+              {undo ? (
+                <button
+                  type="button"
+                  onClick={undoLast}
+                  className="text-xs text-[var(--muted)] hover:text-[var(--accent)]"
+                >
+                  Отменить ответ
+                </button>
+              ) : null}
+            </div>
             <div className="flex min-h-36 items-center justify-center rounded-3xl bg-[var(--bg)] px-6 py-10 text-center">
               <p className="font-[family-name:var(--font-display)] text-2xl font-semibold leading-snug">
                 {flipped ? current.back : current.front}
@@ -323,7 +495,7 @@ export default function LongtermTrainer() {
                   </button>
                 </div>
                 <p className="text-xs text-[var(--muted)]">
-                  После «забыл» карточка вернётся в конец этой сессии ещё раз
+                  После «забыл» карточка вернётся в конец сессии · Ctrl+Z — отмена
                 </p>
               </div>
             )}
@@ -339,13 +511,24 @@ export default function LongtermTrainer() {
               Очки за сессию: {score}
               {streak > 0 ? ` · серия ${streak} дн.` : ""}
             </p>
-            <button
-              type="button"
-              onClick={() => setPhase("ready")}
-              className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
-            >
-              На экран старта
-            </button>
+            <div className="flex flex-wrap gap-3">
+              {undo ? (
+                <button
+                  type="button"
+                  onClick={undoLast}
+                  className="rounded-full border border-[var(--line)] px-5 py-2.5 text-sm hover:border-[var(--accent)]"
+                >
+                  Отменить последний ответ
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => setPhase("ready")}
+                className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+              >
+                На экран старта
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -410,28 +593,78 @@ export default function LongtermTrainer() {
               <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold">
                 Колода
               </h2>
-              <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto text-sm">
+              <ul className="mt-3 max-h-96 space-y-2 overflow-y-auto text-sm">
                 {deck.map((c) => (
                   <li
                     key={c.id}
-                    className="flex flex-wrap items-start justify-between gap-2 rounded-2xl border border-[var(--line)] px-3 py-2"
+                    className="rounded-2xl border border-[var(--line)] px-3 py-2"
                   >
-                    <div>
-                      <p className="font-medium">{c.front}</p>
-                      <p className="text-[var(--muted)]">{c.back}</p>
-                      <p className="mt-1 text-xs text-[var(--muted)]">
-                        повтор {c.nextReview} · интервал {c.intervalDays} дн.
-                        {c.tag ? ` · ${c.tag}` : ""}
-                        {isHardCard(c) ? " · сложная" : ""}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onRemove(c.id)}
-                      className="text-xs text-[var(--muted)] hover:text-rose-700"
-                    >
-                      Удалить
-                    </button>
+                    {editId === c.id ? (
+                      <form onSubmit={saveEdit} className="space-y-2">
+                        <input
+                          value={editFront}
+                          onChange={(e) => setEditFront(e.target.value)}
+                          className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3 py-2 outline-none focus:border-[var(--accent)]"
+                          placeholder="Вопрос"
+                        />
+                        <input
+                          value={editBack}
+                          onChange={(e) => setEditBack(e.target.value)}
+                          className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3 py-2 outline-none focus:border-[var(--accent)]"
+                          placeholder="Ответ"
+                        />
+                        <input
+                          value={editTag}
+                          onChange={(e) => setEditTag(e.target.value)}
+                          className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] px-3 py-2 outline-none focus:border-[var(--accent)]"
+                          placeholder="Тема"
+                          list="srs-tags"
+                        />
+                        <div className="flex gap-3">
+                          <button
+                            type="submit"
+                            className="rounded-full bg-[var(--accent)] px-4 py-1.5 text-xs font-medium text-white"
+                          >
+                            Сохранить
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditId(null)}
+                            className="text-xs text-[var(--muted)]"
+                          >
+                            Отмена
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="font-medium">{c.front}</p>
+                          <p className="text-[var(--muted)]">{c.back}</p>
+                          <p className="mt-1 text-xs text-[var(--muted)]">
+                            повтор {c.nextReview} · интервал {c.intervalDays} дн.
+                            {c.tag ? ` · ${c.tag}` : ""}
+                            {isHardCard(c) ? " · сложная" : ""}
+                          </p>
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={() => beginEdit(c)}
+                            className="text-xs text-[var(--muted)] hover:text-[var(--accent)]"
+                          >
+                            Изменить
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onRemove(c.id)}
+                            className="text-xs text-[var(--muted)] hover:text-rose-700"
+                          >
+                            Удалить
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -443,7 +676,7 @@ export default function LongtermTrainer() {
               Копия колоды
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Скачайте JSON, чтобы не потерять свои карточки и интервалы при смене телефона.
+              JSON включает карточки, интервалы и серию дней. Удобно при смене телефона.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <button
@@ -479,6 +712,7 @@ export default function LongtermTrainer() {
                         return;
                       }
                       setDeck(applySrsBackup(data));
+                      refreshStreakUi();
                       setBackupMsg(`Импортировано карточек: ${data.deck.length}`);
                     } catch (err) {
                       setBackupErr(err instanceof Error ? err.message : "Ошибка файла");

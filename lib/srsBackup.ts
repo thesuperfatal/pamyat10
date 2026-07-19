@@ -1,19 +1,25 @@
 import type { SrsCard } from "./srs";
 import { loadDeck, saveDeck } from "./srsStore";
+import { applyStreakBackup, loadStreak } from "./srsStreak";
 
-const BACKUP_VERSION = 1;
+const BACKUP_VERSION = 2;
 
 export interface SrsBackup {
   version: number;
   exportedAt: string;
   deck: SrsCard[];
+  streakDays?: string[];
+  streakCounts?: Record<string, number>;
 }
 
 export function buildSrsBackup(): SrsBackup {
+  const streak = loadStreak();
   return {
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     deck: loadDeck(),
+    streakDays: streak.days,
+    streakCounts: streak.counts,
   };
 }
 
@@ -43,5 +49,8 @@ export function parseSrsBackup(raw: string): SrsBackup {
 
 export function applySrsBackup(data: SrsBackup): SrsCard[] {
   saveDeck(data.deck);
+  if (Array.isArray(data.streakDays)) {
+    applyStreakBackup(data.streakDays, data.streakCounts);
+  }
   return data.deck;
 }

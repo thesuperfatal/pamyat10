@@ -121,6 +121,37 @@ export function removeCard(id: string): SrsCard[] {
   return next;
 }
 
+export function updateCard(
+  id: string,
+  patch: { front: string; back: string; tag?: string },
+): SrsCard[] {
+  const next = loadDeck().map((c) => {
+    if (c.id !== id) return c;
+    const tag = patch.tag?.trim();
+    const updated: SrsCard = {
+      ...c,
+      front: patch.front.trim(),
+      back: patch.back.trim(),
+    };
+    if (tag) updated.tag = tag;
+    else delete updated.tag;
+    return updated;
+  });
+  saveDeck(next);
+  return next;
+}
+
+/** Сколько карточек «всплывут» в ближайшие дни (по nextReview) */
+export function upcomingByDay(deck: SrsCard[], days = 7, today = todayKey()) {
+  const result: { date: string; count: number }[] = [];
+  for (let i = 0; i < days; i += 1) {
+    const date = addDays(today, i);
+    const count = deck.filter((c) => c.nextReview === date).length;
+    result.push({ date, count });
+  }
+  return result;
+}
+
 export function deckStats(deck: SrsCard[], today = todayKey()) {
   const due = dueCards(deck, today).length;
   const strong = deck.filter((c) => c.intervalDays >= 7).length;
