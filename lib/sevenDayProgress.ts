@@ -62,6 +62,6 @@ export function nextOpenDay(completed: number[]): number | null {
   return null;
 }
 
-export function trainerHref(trainer: "numbers" | "words" | "order"): string {
+export function trainerHref(trainer: "numbers" | "words" | "order" | "pairs"): string {
   return `/trainers/${trainer}/`;
 }

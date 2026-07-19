@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import YandexMetrika from "@/components/YandexMetrika";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description:
-    "Бесплатные тренажёры памяти в браузере: цифры, слова и порядок. 10 минут в день, без регистрации.",
+    "Бесплатные тренажёры памяти в браузере: цифры, слова, порядок и пары. 10 минут в день, без регистрации.",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
@@ -40,6 +41,7 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col text-[var(--ink)]">
+        <YandexMetrika />
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />

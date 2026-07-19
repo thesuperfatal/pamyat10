@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/program/",
     "/stats/",
     "/articles/",
+    "/faq/",
     "/trainers/numbers/",
     "/trainers/words/",
     "/trainers/order/",

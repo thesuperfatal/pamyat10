@@ -2,7 +2,7 @@ export interface DayPlan {
   day: number;
   title: string;
   focus: string;
-  trainer: "numbers" | "words" | "order";
+  trainer: "numbers" | "words" | "order" | "pairs";
   rounds: number;
   tip: string;
 }
@@ -43,6 +43,14 @@ export const SEVEN_DAY_PLAN: DayPlan[] = [
   },
   {
     day: 5,
+    title: "Карточки «Пары»",
+    focus: "Найти одинаковые карточки без лишних ходов",
+    trainer: "pairs",
+    rounds: 2,
+    tip: "Сначала пробегите глазами крайние карточки — края запоминаются легче центра.",
+  },
+  {
+    day: 6,
     title: "Слова точнее",
     focus: "Отметить нужные слова среди похожих",
     trainer: "words",
@@ -50,17 +58,9 @@ export const SEVEN_DAY_PLAN: DayPlan[] = [
     tip: "Сначала запомните количество слов, потом сами слова.",
   },
   {
-    day: 6,
-    title: "Порядок под нагрузкой",
-    focus: "Больше символов в той же схеме",
-    trainer: "order",
-    rounds: 4,
-    tip: "Дайте названия символам: «ель, лодка, ключ» — и повторите цепочку.",
-  },
-  {
     day: 7,
-    title: "Смешанный финиш",
-    focus: "Цифры — закрепить результат недели",
+    title: "Финиш недели",
+    focus: "Цифры — закрепить результат",
     trainer: "numbers",
     rounds: 5,
     tip: "Не гонитесь за рекордом: стабильность важнее пика.",
