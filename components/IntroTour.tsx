@@ -7,6 +7,7 @@ import { LESSONS } from "@/lib/lessons";
 import {
   INTRO_CONTRAST,
   INTRO_GOALS,
+  INTRO_GOAL_STEP,
   INTRO_MAP,
   INTRO_STEPS,
   INTRO_WELCOME,
@@ -210,38 +211,85 @@ export default function IntroTour() {
       )}
 
       {step === "goal" && (
-        <section className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
-            Что вам сейчас нужнее?
-          </h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Один выбор — подскажем, куда зайти первым. Потом можно пробовать всё остальное.
-          </p>
-          <div className="mt-5 grid gap-3">
-            {INTRO_GOALS.map((g) => {
-              const active = goal?.id === g.id;
-              return (
-                <button
-                  key={g.id}
-                  type="button"
-                  onClick={() => setGoal(g)}
-                  className={`rounded-2xl border px-4 py-3 text-left transition ${
-                    active
-                      ? "border-[var(--accent)] bg-[var(--accent-soft)]"
-                      : "border-[var(--line)] bg-[var(--bg)] hover:border-[var(--accent)]"
-                  }`}
-                >
-                  <p className="font-medium text-[var(--ink)]">{g.label}</p>
-                  <p className="mt-0.5 text-sm text-[var(--muted)]">{g.hint}</p>
-                </button>
-              );
-            })}
+        <section className="space-y-4">
+          <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm sm:p-7">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+              {INTRO_GOAL_STEP.eyebrow}
+            </p>
+            <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold sm:text-3xl">
+              {INTRO_GOAL_STEP.title}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--muted)] sm:text-base">
+              {INTRO_GOAL_STEP.lead}
+            </p>
+            <p className="mt-2 text-xs text-[var(--muted)]">{INTRO_GOAL_STEP.hint}</p>
+
+            <div className="mt-5 grid gap-3">
+              {INTRO_GOALS.map((g) => {
+                const active = goal?.id === g.id;
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => setGoal(g)}
+                    onDoubleClick={() => {
+                      setGoal(g);
+                      next();
+                    }}
+                    className={`rounded-2xl border px-4 py-3.5 text-left transition ${
+                      active
+                        ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-sm"
+                        : "border-[var(--line)] bg-[var(--bg)] hover:border-[var(--accent)]"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <p className="font-medium text-[var(--ink)]">{g.label}</p>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs ${
+                          active
+                            ? "bg-[var(--accent)] text-white"
+                            : "bg-white text-[var(--muted)]"
+                        }`}
+                      >
+                        → {g.leadsTo}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-[var(--muted)]">{g.hint}</p>
+                    <p className="mt-2 text-xs text-[var(--ink)]/70">
+                      <span className="text-[var(--muted)]">Когда: </span>
+                      {g.situation}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div className="mt-6 flex flex-wrap gap-3">
+
+          {goal ? (
+            <div className="rounded-3xl border border-[var(--accent)]/35 bg-[var(--accent-soft)]/50 p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+                Ваш выбор
+              </p>
+              <p className="mt-1 font-[family-name:var(--font-display)] text-lg font-semibold">
+                {goal.label}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{goal.why}</p>
+              <p className="mt-3 text-sm text-[var(--ink)]">
+                Первый раздел:{" "}
+                <span className="font-medium text-[var(--accent)]">{goal.leadsTo}</span>
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-[var(--line)] bg-white/70 px-5 py-4 text-sm text-[var(--muted)]">
+              Выберите один вариант выше — появится краткое объяснение, куда вас направим.
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={back}
-              className="rounded-full border border-[var(--line)] px-4 py-2 text-sm hover:border-[var(--accent)]"
+              className="rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm hover:border-[var(--accent)]"
             >
               Назад
             </button>
@@ -254,6 +302,9 @@ export default function IntroTour() {
               Дальше · мини-проба
             </button>
           </div>
+          <p className="text-xs text-[var(--muted)]">
+            Двойной клик по варианту сразу переходит к пробе.
+          </p>
         </section>
       )}
 

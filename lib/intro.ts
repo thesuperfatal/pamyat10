@@ -29,14 +29,25 @@ export const INTRO_WELCOME = {
   ],
 };
 
+/** Контент шага 2 — выбор цели */
+export const INTRO_GOAL_STEP = {
+  eyebrow: "Шаг 2 · Цель",
+  title: "Что потренировать сегодня?",
+  lead: "Один честный ответ — подскажем первый тренажёр. Выбор не навсегда: завтра можно взять другое.",
+  hint: "Если сомневаетесь — нажмите «Не знаю — дайте план».",
+};
+
 export interface IntroGoal {
   id: string;
   label: string;
   hint: string;
+  /** Житейская ситуация */
+  situation: string;
+  /** Куда приведёт (название раздела) */
+  leadsTo: string;
   href: string;
   cta: string;
   why: string;
-  /** Короткая подсказка на шаге «проба» */
   tryTip: string;
   trainer?: TrainerId;
 }
@@ -46,6 +57,8 @@ export const INTRO_GOALS: IntroGoal[] = [
     id: "numbers",
     label: "Цифры, коды, номера",
     hint: "Увидел — запомнил — ввёл",
+    situation: "Пин-код, код из SMS, номер с экрана",
+    leadsTo: "Цифры",
     href: "/trainers/numbers/",
     cta: "Открыть «Цифры»",
     why: "Начните с короткого ряда чисел и приёма «пары». Это быстрая разминка на 2–3 минуты.",
@@ -56,6 +69,8 @@ export const INTRO_GOALS: IntroGoal[] = [
     id: "words",
     label: "Слова и списки",
     hint: "Список дел, термины, язык",
+    situation: "Список покупок, новые слова, термины по работе",
+    leadsTo: "Слова",
     href: "/trainers/words/",
     cta: "Открыть «Слова»",
     why: "Соберите слова в мини-историю — так список держится лучше, чем зубрёжка по одному.",
@@ -66,6 +81,8 @@ export const INTRO_GOALS: IntroGoal[] = [
     id: "attention",
     label: "Внимание, как игра",
     hint: "Лёгкий старт без правил на лист",
+    situation: "Хочется размяться без «учёбы»",
+    leadsTo: "Пары",
     href: "/trainers/pairs/",
     cta: "Открыть «Пары»",
     why: "Классика: найти одинаковые карточки. Хорошо, если хочется просто «пощёлкать с пользой».",
@@ -76,6 +93,8 @@ export const INTRO_GOALS: IntroGoal[] = [
     id: "space",
     label: "Где что лежало",
     hint: "Картинки и расположение",
+    situation: "Путаю, куда положил вещи; учу по схемам",
+    leadsTo: "Образы",
     href: "/trainers/images/",
     cta: "Открыть «Образы»",
     why: "Зрительно-пространственная память: запомните сетку рисунков и расставьте их снова.",
@@ -86,6 +105,8 @@ export const INTRO_GOALS: IntroGoal[] = [
     id: "longterm",
     label: "Факты на дни и недели",
     hint: "Термины, даты, формулы",
+    situation: "Учить так, чтобы не выветрилось к пятнице",
+    leadsTo: "Надолго",
     href: "/trainers/longterm/",
     cta: "Открыть «Надолго»",
     why: "Интервальные карточки: повторы через 1–30 дней. Добавляйте свои вопросы — так полезнее демо-колоды.",
@@ -96,6 +117,8 @@ export const INTRO_GOALS: IntroGoal[] = [
     id: "plan",
     label: "Не знаю — дайте план",
     hint: "Готовый маршрут на неделю",
+    situation: "Не хочу выбирать сам — ведите по дням",
+    leadsTo: "7 дней",
     href: "/program/",
     cta: "Открыть «7 дней»",
     why: "Каждый день — один тренажёр и короткая подсказка. Не нужно выбирать самим.",
