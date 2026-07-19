@@ -2,43 +2,82 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import IntroTryMini from "@/components/IntroTryMini";
+import { LESSONS } from "@/lib/lessons";
 import {
+  INTRO_CONTRAST,
   INTRO_GOALS,
   INTRO_MAP,
+  INTRO_STEPS,
+  firstDayChecklist,
+  getGoalById,
+  loadChecklistDone,
+  loadIntroDraft,
   markIntroDone,
+  saveChecklistDone,
+  saveIntroDraft,
   type IntroGoal,
+  type IntroStep,
 } from "@/lib/intro";
 
-type Step = "welcome" | "goal" | "map" | "privacy" | "done";
-
-const STEPS: Step[] = ["welcome", "goal", "map", "privacy", "done"];
-
 export default function IntroTour() {
-  const [step, setStep] = useState<Step>("welcome");
+  const [step, setStep] = useState<IntroStep>("welcome");
   const [goal, setGoal] = useState<IntroGoal | null>(null);
+  const [tried, setTried] = useState(false);
+  const [checks, setChecks] = useState<Set<string>>(() => new Set());
   const [ready, setReady] = useState(false);
+  const [resumed, setResumed] = useState(false);
 
   useEffect(() => {
+    const draft = loadIntroDraft();
+    if (draft && draft.step !== "done") {
+      setStep(draft.step);
+      setGoal(getGoalById(draft.goalId));
+      setTried(draft.tried);
+      setResumed(true);
+    }
+    setChecks(loadChecklistDone());
     setReady(true);
   }, []);
 
-  const index = STEPS.indexOf(step);
-  const progress = ((index + 1) / STEPS.length) * 100;
+  useEffect(() => {
+    if (!ready) return;
+    saveIntroDraft({ step, goalId: goal?.id ?? null, tried });
+  }, [step, goal, tried, ready]);
+
+  const index = INTRO_STEPS.indexOf(step);
+  const progress = ((index + 1) / INTRO_STEPS.length) * 100;
+  const checklist = firstDayChecklist(goal);
+  const lessonTip =
+    goal?.trainer && LESSONS[goal.trainer]
+      ? LESSONS[goal.trainer].steps.find((s) => s.tip)?.tip ??
+        LESSONS[goal.trainer].steps[1]?.body
+      : null;
 
   function next() {
-    const i = STEPS.indexOf(step);
-    if (i < STEPS.length - 1) setStep(STEPS[i + 1]);
+    const i = INTRO_STEPS.indexOf(step);
+    if (i < INTRO_STEPS.length - 1) setStep(INTRO_STEPS[i + 1]);
   }
 
   function back() {
-    const i = STEPS.indexOf(step);
-    if (i > 0) setStep(STEPS[i - 1]);
+    const i = INTRO_STEPS.indexOf(step);
+    if (i > 0) setStep(INTRO_STEPS[i - 1]);
   }
 
   function finish(g: IntroGoal | null = goal) {
     markIntroDone(g?.id);
     setStep("done");
     if (g) setGoal(g);
+  }
+
+  function toggleCheck(id: string) {
+    setChecks((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      saveChecklistDone(next);
+      return next;
+    });
   }
 
   if (!ready) {
@@ -53,9 +92,14 @@ export default function IntroTour() {
           style={{ width: `${progress}%` }}
         />
       </div>
-      <p className="text-xs text-[var(--muted)]">
-        Знакомство · шаг {index + 1} из {STEPS.length}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-[var(--muted)]">
+          Знакомство · шаг {index + 1} из {INTRO_STEPS.length}
+        </p>
+        {resumed && step !== "done" ? (
+          <p className="text-xs text-[var(--accent)]">Продолжаем с прошлого раза</p>
+        ) : null}
+      </div>
 
       {step === "welcome" && (
         <section className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
@@ -72,15 +116,15 @@ export default function IntroTour() {
           <ul className="mt-4 space-y-2 text-sm text-[var(--muted)]">
             <li className="flex gap-2">
               <span className="text-[var(--accent)]">1.</span>
-              Выберите, что хотите потренировать
+              Выберите, что нужнее сегодня
             </li>
             <li className="flex gap-2">
               <span className="text-[var(--accent)]">2.</span>
-              Увидите карту разделов одной строкой
+              Попробуйте мини-раунд (~15 сек)
             </li>
             <li className="flex gap-2">
               <span className="text-[var(--accent)]">3.</span>
-              Получите рекомендацию, с чего начать сегодня
+              Увидите карту и получите план на сегодня
             </li>
           </ul>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -89,10 +133,11 @@ export default function IntroTour() {
               onClick={next}
               className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
             >
-              Поехали · ~2 минуты
+              Поехали · ~3 минуты
             </button>
             <Link
               href="/"
+              onClick={() => markIntroDone()}
               className="rounded-full border border-[var(--line)] px-5 py-2.5 text-sm hover:border-[var(--accent)]"
             >
               Пропустить
@@ -143,7 +188,43 @@ export default function IntroTour() {
               onClick={next}
               className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40"
             >
-              Дальше
+              Дальше · мини-проба
+            </button>
+          </div>
+        </section>
+      )}
+
+      {step === "try" && (
+        <section className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
+            Попробуйте ритм
+          </h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            {goal?.tryTip ??
+              "Короткая проба: так устроены быстрые тренажёры. Можно пропустить."}
+          </p>
+          <div className="mt-4">
+            <IntroTryMini onTried={() => setTried(true)} />
+          </div>
+          {tried ? (
+            <p className="mt-3 text-xs text-[var(--accent)]">Проба засчитана — можно идти дальше.</p>
+          ) : (
+            <p className="mt-3 text-xs text-[var(--muted)]">Необязательно, но помогает «почувствовать» сайт.</p>
+          )}
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={back}
+              className="rounded-full border border-[var(--line)] px-4 py-2 text-sm hover:border-[var(--accent)]"
+            >
+              Назад
+            </button>
+            <button
+              type="button"
+              onClick={next}
+              className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+            >
+              {tried ? "Дальше · карта" : "Пропустить пробу"}
             </button>
           </div>
         </section>
@@ -155,24 +236,33 @@ export default function IntroTour() {
             Карта за минуту
           </h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Шесть тренажёров — шесть разных навыков. Не нужно проходить все сразу.
+            Шесть тренажёров — шесть навыков. Подсвечен тот, что ближе к вашему выбору.
           </p>
           <ul className="mt-5 grid gap-2 sm:grid-cols-2">
-            {INTRO_MAP.map((item) => (
-              <li
-                key={item.title}
-                className="rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-3 py-3"
-              >
-                <p className="font-medium text-[var(--ink)]">{item.title}</p>
-                <p className="mt-0.5 text-xs text-[var(--muted)]">{item.line}</p>
-              </li>
-            ))}
+            {INTRO_MAP.map((item) => {
+              const highlight = goal ? item.goalIds.includes(goal.id) : false;
+              return (
+                <li
+                  key={item.id}
+                  className={`rounded-2xl border px-3 py-3 ${
+                    highlight
+                      ? "border-[var(--accent)] bg-[var(--accent-soft)]"
+                      : "border-[var(--line)] bg-[var(--bg)]"
+                  }`}
+                >
+                  <p className="font-medium text-[var(--ink)]">
+                    {item.title}
+                    {highlight ? " · ваш фокус" : ""}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">{item.line}</p>
+                </li>
+              );
+            })}
           </ul>
-          {goal ? (
-            <p className="mt-4 rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
-              Ваш фокус сегодня: <strong>{goal.label}</strong>
-            </p>
-          ) : null}
+          <div className="mt-4 rounded-2xl border border-dashed border-[var(--line)] bg-white px-4 py-3">
+            <p className="text-sm font-medium text-[var(--ink)]">{INTRO_CONTRAST.title}</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">{INTRO_CONTRAST.body}</p>
+          </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
               type="button"
@@ -223,63 +313,120 @@ export default function IntroTour() {
               onClick={() => finish(goal)}
               className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
             >
-              Готово — рекомендация
+              Готово — план на сегодня
             </button>
           </div>
         </section>
       )}
 
       {step === "done" && (
-        <section className="rounded-3xl border border-[var(--accent)]/40 bg-[var(--accent-soft)]/50 p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
-            Ваш старт
-          </p>
-          <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold">
-            {goal ? goal.cta.replace("Открыть ", "") : "Выберите путь"}
-          </h2>
-          {goal ? (
-            <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{goal.why}</p>
-          ) : (
-            <p className="mt-3 text-sm text-[var(--muted)]">
-              Можно начать с цифр или взять готовую программу на неделю.
+        <div className="space-y-4">
+          <section className="rounded-3xl border border-[var(--accent)]/40 bg-[var(--accent-soft)]/50 p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+              Ваш старт
             </p>
-          )}
-          <div className="mt-6 flex flex-wrap gap-3">
+            <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold">
+              {goal ? goal.cta.replace("Открыть ", "") : "Выберите путь"}
+            </h2>
             {goal ? (
-              <Link
-                href={goal.href}
-                className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
-              >
-                {goal.cta}
-              </Link>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{goal.why}</p>
+            ) : (
+              <p className="mt-3 text-sm text-[var(--muted)]">
+                Можно начать с цифр или взять готовую программу на неделю.
+              </p>
+            )}
+            {lessonTip ? (
+              <p className="mt-4 rounded-2xl bg-white/80 px-4 py-3 text-sm text-[var(--ink)]">
+                <span className="font-medium text-[var(--accent)]">Приём: </span>
+                {lessonTip}
+              </p>
             ) : null}
-            <Link
-              href="/program/"
-              className="rounded-full border border-[var(--line)] bg-white px-5 py-2.5 text-sm hover:border-[var(--accent)]"
+            <div className="mt-6 flex flex-wrap gap-3">
+              {goal ? (
+                <Link
+                  href={goal.href}
+                  className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+                >
+                  {goal.cta}
+                </Link>
+              ) : null}
+              <Link
+                href="/program/"
+                className="rounded-full border border-[var(--line)] bg-white px-5 py-2.5 text-sm hover:border-[var(--accent)]"
+              >
+                Программа «7 дней»
+              </Link>
+              <Link
+                href="/learn/"
+                className="rounded-full border border-[var(--line)] bg-white px-5 py-2.5 text-sm hover:border-[var(--accent)]"
+              >
+                Все уроки
+              </Link>
+              <Link
+                href="/"
+                className="rounded-full px-5 py-2.5 text-sm text-[var(--muted)] hover:text-[var(--accent)]"
+              >
+                На главную
+              </Link>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setStep("goal");
+                setGoal(null);
+                setTried(false);
+                setResumed(false);
+              }}
+              className="mt-4 text-sm text-[var(--muted)] hover:text-[var(--accent)]"
             >
-              Программа «7 дней»
-            </Link>
-            <Link
-              href="/about/"
-              className="rounded-full border border-[var(--line)] bg-white px-5 py-2.5 text-sm hover:border-[var(--accent)]"
-            >
-              Подробнее о разделах
-            </Link>
-            <Link href="/" className="rounded-full px-5 py-2.5 text-sm text-[var(--muted)] hover:text-[var(--accent)]">
-              На главную
-            </Link>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setStep("goal");
-              setGoal(null);
-            }}
-            className="mt-4 text-sm text-[var(--muted)] hover:text-[var(--accent)]"
-          >
-            Выбрать другую цель
-          </button>
-        </section>
+              Выбрать другую цель
+            </button>
+          </section>
+
+          <section className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
+            <h3 className="font-[family-name:var(--font-display)] text-lg font-semibold">
+              Чеклист первого дня
+            </h3>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Отмечайте пункты — список сохранится в браузере.
+            </p>
+            <ul className="mt-4 space-y-2">
+              {checklist.map((item) => {
+                const done = checks.has(item.id);
+                return (
+                  <li key={item.id}>
+                    <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[var(--line)] px-3 py-3 hover:border-[var(--accent)]">
+                      <input
+                        type="checkbox"
+                        checked={done}
+                        onChange={() => toggleCheck(item.id)}
+                        className="mt-1 size-4 accent-[var(--accent)]"
+                      />
+                      <span className={`text-sm ${done ? "text-[var(--muted)] line-through" : ""}`}>
+                        {item.label}
+                        {item.href ? (
+                          <>
+                            {" · "}
+                            <Link
+                              href={item.href}
+                              className="text-[var(--accent)] no-underline hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              открыть
+                            </Link>
+                          </>
+                        ) : null}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-3 text-xs text-[var(--muted)]">
+              Отмечено {checks.size} из {checklist.length}
+            </p>
+          </section>
+        </div>
       )}
     </div>
   );

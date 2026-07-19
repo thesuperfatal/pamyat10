@@ -5,7 +5,7 @@ import IntroTour from "@/components/IntroTour";
 export const metadata: Metadata = {
   title: "Знакомство с Память10",
   description:
-    "Короткий тур для новых посетителей: что здесь есть, что вам нужнее и с какого тренажёра начать.",
+    "Интерактивный тур: цель, мини-проба, карта разделов, план и чеклист первого дня.",
 };
 
 export default function IntroPage() {
