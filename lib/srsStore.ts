@@ -57,3 +57,30 @@ export function resetDeck(): SrsCard[] {
   saveDeck(seeded);
   return seeded;
 }
+
+export function addCard(front: string, back: string): SrsCard[] {
+  const deck = loadDeck();
+  const card: SrsCard = {
+    id: `u-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    front: front.trim(),
+    back: back.trim(),
+    intervalDays: 0,
+    nextReview: todayKey(),
+    reps: 0,
+  };
+  const next = [card, ...deck];
+  saveDeck(next);
+  return next;
+}
+
+export function removeCard(id: string): SrsCard[] {
+  const next = loadDeck().filter((c) => c.id !== id);
+  saveDeck(next);
+  return next;
+}
+
+export function deckStats(deck: SrsCard[], today = todayKey()) {
+  const due = dueCards(deck, today).length;
+  const strong = deck.filter((c) => c.intervalDays >= 7).length;
+  return { total: deck.length, due, strong };
+}

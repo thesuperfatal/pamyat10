@@ -19,6 +19,9 @@ export default function SiteHeader() {
           <Link href="/#trainers" className="hover:text-[var(--accent)]">
             Тренажёры
           </Link>
+          <Link href="/trainers/longterm/" className="hover:text-[var(--accent)]">
+            Надолго
+          </Link>
           <Link href="/program/" className="hover:text-[var(--accent)]">
             7 дней
           </Link>

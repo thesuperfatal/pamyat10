@@ -2,7 +2,7 @@ export interface DayPlan {
   day: number;
   title: string;
   focus: string;
-  trainer: "numbers" | "words" | "order" | "pairs";
+  trainer: "numbers" | "words" | "order" | "pairs" | "longterm";
   rounds: number;
   tip: string;
 }
@@ -59,10 +59,10 @@ export const SEVEN_DAY_PLAN: DayPlan[] = [
   },
   {
     day: 7,
-    title: "Финиш недели",
-    focus: "Цифры — закрепить результат",
-    trainer: "numbers",
-    rounds: 5,
-    tip: "Не гонитесь за рекордом: стабильность важнее пика.",
+    title: "Надолго — финиш недели",
+    focus: "Интервальные карточки для долговременной памяти",
+    trainer: "longterm",
+    rounds: 1,
+    tip: "Честно жмите «забыл», если сомневаетесь — так интервал сбросится правильно.",
   },
 ];
