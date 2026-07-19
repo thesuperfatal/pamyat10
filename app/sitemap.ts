@@ -19,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/trainers/numbers/",
     "/trainers/words/",
     "/trainers/order/",
+    "/trainers/pairs/",
   ];
 
   return [

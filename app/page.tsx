@@ -14,7 +14,7 @@ export default function HomePage() {
           Память10
         </h1>
         <p className="mt-4 max-w-xl text-lg leading-relaxed text-[var(--muted)]">
-          Короткие тренировки в браузере: цифры, слова и порядок. Без регистрации —
+          Короткие тренировки в браузере: цифры, слова, порядок и пары. Без регистрации —
           прогресс хранится только у вас на устройстве.
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
@@ -64,7 +64,7 @@ export default function HomePage() {
 
       <section id="trainers" className="scroll-mt-20">
         <h2 className="mb-2 font-[family-name:var(--font-display)] text-xl font-semibold">
-          Три тренажёра
+          Тренажёры
         </h2>
         <p className="mb-6 text-sm text-[var(--muted)]">
           Достаточно 10 минут. Сложность подстраивается после каждой попытки.

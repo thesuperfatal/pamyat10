@@ -10,6 +10,7 @@ const labels: Record<string, string> = {
   numbers: "Цифры",
   words: "Слова",
   order: "Порядок",
+  pairs: "Пары",
 };
 
 export default function StatsPage() {

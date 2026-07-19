@@ -37,8 +37,8 @@ export default function StatsSummary({ compact = false }: { compact?: boolean })
       <StatCard label="Серия дней" value={String(stats.streak)} />
       <StatCard
         label="Лучшие"
-        value={`${stats.best.numbers}/${stats.best.words}/${stats.best.order}`}
-        hint="цифры / слова / порядок"
+        value={`${stats.best.numbers}/${stats.best.words}/${stats.best.order}/${stats.best.pairs}`}
+        hint="цифры / слова / порядок / пары"
       />
     </div>
   );

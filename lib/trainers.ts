@@ -30,4 +30,11 @@ export const TRAINERS: TrainerMeta[] = [
     href: "/trainers/order/",
     minutes: "2–3 мин",
   },
+  {
+    id: "pairs",
+    title: "Пары",
+    short: "Найдите одинаковые карточки — классика на внимание",
+    href: "/trainers/pairs/",
+    minutes: "3–5 мин",
+  },
 ];

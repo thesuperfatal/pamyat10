@@ -35,6 +35,12 @@ export default function ArticleView({ article }: { article: Article }) {
             Слова
           </Link>
           <Link
+            href="/trainers/pairs/"
+            className="rounded-full border border-[var(--line)] px-4 py-2 text-sm hover:border-[var(--accent)]"
+          >
+            Пары
+          </Link>
+          <Link
             href="/program/"
             className="rounded-full border border-[var(--line)] px-4 py-2 text-sm hover:border-[var(--accent)]"
           >
