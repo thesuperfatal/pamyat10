@@ -10,6 +10,7 @@ import {
   INTRO_GOAL_STEP,
   INTRO_MAP,
   INTRO_STEPS,
+  INTRO_TRY_STEP,
   INTRO_WELCOME,
   firstDayChecklist,
   getGoalById,
@@ -26,6 +27,7 @@ export default function IntroTour() {
   const [step, setStep] = useState<IntroStep>("welcome");
   const [goal, setGoal] = useState<IntroGoal | null>(null);
   const [tried, setTried] = useState(false);
+  const [tryOk, setTryOk] = useState<boolean | null>(null);
   const [checks, setChecks] = useState<Set<string>>(() => new Set());
   const [ready, setReady] = useState(false);
   const [resumed, setResumed] = useState(false);
@@ -309,27 +311,67 @@ export default function IntroTour() {
       )}
 
       {step === "try" && (
-        <section className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
-            Попробуйте ритм
-          </h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            {goal?.tryTip ??
-              "Короткая проба: так устроены быстрые тренажёры. Можно пропустить."}
-          </p>
-          <div className="mt-4">
-            <IntroTryMini onTried={() => setTried(true)} />
+        <section className="space-y-4">
+          <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm sm:p-7">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+              {INTRO_TRY_STEP.eyebrow}
+            </p>
+            <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold sm:text-3xl">
+              {INTRO_TRY_STEP.title}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--muted)] sm:text-base">
+              {INTRO_TRY_STEP.lead}
+            </p>
+
+            {goal ? (
+              <p className="mt-4 rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
+                Ваша цель: <strong>{goal.label}</strong>
+                <span className="mt-1 block font-normal text-[var(--muted)]">{goal.tryTip}</span>
+              </p>
+            ) : null}
+
+            <ol className="mt-5 grid gap-2 sm:grid-cols-3">
+              {INTRO_TRY_STEP.phases.map((p) => (
+                <li
+                  key={p.n}
+                  className="rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-3 py-3"
+                >
+                  <p className="text-xs font-semibold text-[var(--accent)]">{p.n}</p>
+                  <p className="mt-1 text-sm font-medium text-[var(--ink)]">{p.title}</p>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">{p.text}</p>
+                </li>
+              ))}
+            </ol>
           </div>
-          {tried ? (
-            <p className="mt-3 text-xs text-[var(--accent)]">Проба засчитана — можно идти дальше.</p>
+
+          <IntroTryMini
+            onTried={() => setTried(true)}
+            onResult={(correct) => setTryOk(correct)}
+          />
+
+          {tried && tryOk !== null ? (
+            <p
+              className={`rounded-2xl px-4 py-3 text-sm ${
+                tryOk
+                  ? "bg-[var(--accent-soft)]/80 text-[var(--accent)]"
+                  : "border border-[var(--line)] bg-white text-[var(--muted)]"
+              }`}
+            >
+              {tryOk ? INTRO_TRY_STEP.afterOk : INTRO_TRY_STEP.afterFail}
+            </p>
+          ) : tried ? (
+            <p className="text-xs text-[var(--accent)]">Проба начата — доведите до ответа или идите дальше.</p>
           ) : (
-            <p className="mt-3 text-xs text-[var(--muted)]">Необязательно, но помогает «почувствовать» сайт.</p>
+            <p className="text-xs text-[var(--muted)]">
+              Необязательно, но помогает «почувствовать» сайт за 15 секунд.
+            </p>
           )}
-          <div className="mt-6 flex flex-wrap gap-3">
+
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={back}
-              className="rounded-full border border-[var(--line)] px-4 py-2 text-sm hover:border-[var(--accent)]"
+              className="rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm hover:border-[var(--accent)]"
             >
               Назад
             </button>
@@ -488,8 +530,9 @@ export default function IntroTour() {
               onClick={() => {
                 setStep("goal");
                 setGoal(null);
-                setTried(false);
-                setResumed(false);
+              setTried(false);
+              setTryOk(null);
+              setResumed(false);
               }}
               className="mt-4 text-sm text-[var(--muted)] hover:text-[var(--accent)]"
             >
