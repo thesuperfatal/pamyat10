@@ -144,16 +144,41 @@ export interface IntroMapItem {
   id: string;
   title: string;
   line: string;
+  /** Что качает одной фразой */
+  skill: string;
+  /** Группа на карте */
+  kind: "speed" | "focus" | "space" | "long";
+  minutes: string;
   href: string;
-  /** Какие цели подсвечивают эту карточку */
   goalIds: string[];
 }
+
+export const INTRO_MAP_KINDS: Record<
+  IntroMapItem["kind"],
+  { label: string; hint: string }
+> = {
+  speed: { label: "Быстрые раунды", hint: "Секунды–минуты, сложность растёт" },
+  focus: { label: "Внимание", hint: "Игровой темп, меньше «учёбы»" },
+  space: { label: "Пространство", hint: "Где что стояло" },
+  long: { label: "Надолго", hint: "Повторы через дни" },
+};
+
+/** Контент шага 4 — карта */
+export const INTRO_MAP_STEP = {
+  eyebrow: "Шаг 4 · Карта",
+  title: "Шесть разделов — шесть навыков",
+  lead: "Не нужно проходить всё сразу. Сегодня достаточно одного фокуса. Остальное — когда захотите.",
+  tip: "Подсвечен раздел под ваш выбор. Остальные — чтобы понимать, что ещё есть на сайте.",
+};
 
 export const INTRO_MAP: IntroMapItem[] = [
   {
     id: "numbers",
     title: "Цифры",
     line: "Ряд чисел → воспроизвести",
+    skill: "Кратковременная память на числа",
+    kind: "speed",
+    minutes: "2–3 мин",
     href: "/trainers/numbers/",
     goalIds: ["numbers", "plan"],
   },
@@ -161,6 +186,9 @@ export const INTRO_MAP: IntroMapItem[] = [
     id: "words",
     title: "Слова",
     line: "Список → узнать среди похожих",
+    skill: "Словесная память и точность",
+    kind: "speed",
+    minutes: "3–4 мин",
     href: "/trainers/words/",
     goalIds: ["words"],
   },
@@ -168,6 +196,9 @@ export const INTRO_MAP: IntroMapItem[] = [
     id: "order",
     title: "Порядок",
     line: "Что за чем шло",
+    skill: "Память на последовательность",
+    kind: "speed",
+    minutes: "2–3 мин",
     href: "/trainers/order/",
     goalIds: [],
   },
@@ -175,6 +206,9 @@ export const INTRO_MAP: IntroMapItem[] = [
     id: "pairs",
     title: "Пары",
     line: "Найти одинаковые карточки",
+    skill: "Внимание и короткая зрительная память",
+    kind: "focus",
+    minutes: "3–5 мин",
     href: "/trainers/pairs/",
     goalIds: ["attention"],
   },
@@ -182,6 +216,9 @@ export const INTRO_MAP: IntroMapItem[] = [
     id: "images",
     title: "Образы",
     line: "Где какой рисунок стоял",
+    skill: "Зрительно-пространственная память",
+    kind: "space",
+    minutes: "3–5 мин",
     href: "/trainers/images/",
     goalIds: ["space"],
   },
@@ -189,6 +226,9 @@ export const INTRO_MAP: IntroMapItem[] = [
     id: "longterm",
     title: "Надолго",
     line: "Факты с паузами 1–30 дней",
+    skill: "Долговременная память (интервалы)",
+    kind: "long",
+    minutes: "5–10 мин",
     href: "/trainers/longterm/",
     goalIds: ["longterm"],
   },
@@ -197,7 +237,9 @@ export const INTRO_MAP: IntroMapItem[] = [
 /** Частая путаница — коротко на карте */
 export const INTRO_CONTRAST = {
   title: "Не путайте «Пары» и «Образы»",
-  body: "Пары — найти две одинаковые. Образы — вспомнить, где именно стоял рисунок. Разные навыки.",
+  body: "Пары — найти две одинаковые карточки (внимание). Образы — вспомнить, в какой ячейке стоял рисунок (пространство). Разные навыки.",
+  pairsNote: "Игра: открыл → сравнил",
+  imagesNote: "Сцена: где именно лежало",
 };
 
 export interface ChecklistItem {

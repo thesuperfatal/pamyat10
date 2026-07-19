@@ -9,6 +9,8 @@ import {
   INTRO_GOALS,
   INTRO_GOAL_STEP,
   INTRO_MAP,
+  INTRO_MAP_KINDS,
+  INTRO_MAP_STEP,
   INTRO_STEPS,
   INTRO_TRY_STEP,
   INTRO_WELCOME,
@@ -387,43 +389,96 @@ export default function IntroTour() {
       )}
 
       {step === "map" && (
-        <section className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
-            Карта за минуту
-          </h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Шесть тренажёров — шесть навыков. Подсвечен тот, что ближе к вашему выбору.
-          </p>
-          <ul className="mt-5 grid gap-2 sm:grid-cols-2">
-            {INTRO_MAP.map((item) => {
-              const highlight = goal ? item.goalIds.includes(goal.id) : false;
+        <section className="space-y-4">
+          <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm sm:p-7">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+              {INTRO_MAP_STEP.eyebrow}
+            </p>
+            <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold sm:text-3xl">
+              {INTRO_MAP_STEP.title}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--muted)] sm:text-base">
+              {INTRO_MAP_STEP.lead}
+            </p>
+            <p className="mt-2 text-xs text-[var(--muted)]">{INTRO_MAP_STEP.tip}</p>
+
+            {goal ? (
+              <p className="mt-4 rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
+                Сегодняшний фокус: <strong>{goal.leadsTo}</strong>
+                <span className="mt-1 block font-normal text-[var(--muted)]">{goal.why}</span>
+              </p>
+            ) : null}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(Object.keys(INTRO_MAP_KINDS) as Array<keyof typeof INTRO_MAP_KINDS>).map((kind) => {
+              const meta = INTRO_MAP_KINDS[kind];
+              const items = INTRO_MAP.filter((m) => m.kind === kind);
               return (
-                <li
-                  key={item.id}
-                  className={`rounded-2xl border px-3 py-3 ${
-                    highlight
-                      ? "border-[var(--accent)] bg-[var(--accent-soft)]"
-                      : "border-[var(--line)] bg-[var(--bg)]"
-                  }`}
+                <div
+                  key={kind}
+                  className="rounded-3xl border border-[var(--line)] bg-white p-4 shadow-sm"
                 >
-                  <p className="font-medium text-[var(--ink)]">
-                    {item.title}
-                    {highlight ? " · ваш фокус" : ""}
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+                    {meta.label}
                   </p>
-                  <p className="mt-0.5 text-xs text-[var(--muted)]">{item.line}</p>
-                </li>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">{meta.hint}</p>
+                  <ul className="mt-3 space-y-2">
+                    {items.map((item) => {
+                      const highlight = goal ? item.goalIds.includes(goal.id) : false;
+                      return (
+                        <li
+                          key={item.id}
+                          className={`rounded-2xl border px-3 py-2.5 ${
+                            highlight
+                              ? "border-[var(--accent)] bg-[var(--accent-soft)]"
+                              : "border-[var(--line)] bg-[var(--bg)]"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-medium text-[var(--ink)]">
+                              {item.title}
+                              {highlight ? (
+                                <span className="ml-1.5 text-xs font-normal text-[var(--accent)]">
+                                  · ваш фокус
+                                </span>
+                              ) : null}
+                            </p>
+                            <span className="shrink-0 text-[10px] text-[var(--muted)]">
+                              {item.minutes}
+                            </span>
+                          </div>
+                          <p className="mt-0.5 text-xs text-[var(--muted)]">{item.line}</p>
+                          <p className="mt-1 text-xs text-[var(--ink)]/75">{item.skill}</p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               );
             })}
-          </ul>
-          <div className="mt-4 rounded-2xl border border-dashed border-[var(--line)] bg-white px-4 py-3">
-            <p className="text-sm font-medium text-[var(--ink)]">{INTRO_CONTRAST.title}</p>
-            <p className="mt-1 text-sm text-[var(--muted)]">{INTRO_CONTRAST.body}</p>
           </div>
-          <div className="mt-6 flex flex-wrap gap-3">
+
+          <div className="rounded-3xl border border-dashed border-[var(--line)] bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-[var(--ink)]">{INTRO_CONTRAST.title}</p>
+            <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">{INTRO_CONTRAST.body}</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-2xl bg-[var(--bg)] px-3 py-2.5 text-xs">
+                <p className="font-medium text-[var(--ink)]">Пары</p>
+                <p className="mt-0.5 text-[var(--muted)]">{INTRO_CONTRAST.pairsNote}</p>
+              </div>
+              <div className="rounded-2xl bg-[var(--bg)] px-3 py-2.5 text-xs">
+                <p className="font-medium text-[var(--ink)]">Образы</p>
+                <p className="mt-0.5 text-[var(--muted)]">{INTRO_CONTRAST.imagesNote}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={back}
-              className="rounded-full border border-[var(--line)] px-4 py-2 text-sm hover:border-[var(--accent)]"
+              className="rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm hover:border-[var(--accent)]"
             >
               Назад
             </button>
@@ -432,7 +487,7 @@ export default function IntroTour() {
               onClick={next}
               className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
             >
-              Дальше
+              Дальше · про данные
             </button>
           </div>
         </section>
