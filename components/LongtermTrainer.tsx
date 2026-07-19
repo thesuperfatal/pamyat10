@@ -23,6 +23,7 @@ import {
   markReviewDay,
   weekActivity,
 } from "@/lib/srsStreak";
+import TrainerLesson from "@/components/TrainerLesson";
 
 type Phase = "ready" | "front" | "back" | "done";
 
@@ -275,6 +276,7 @@ export default function LongtermTrainer() {
 
   return (
     <div className="space-y-4">
+      <TrainerLesson trainerId="longterm" />
       <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>

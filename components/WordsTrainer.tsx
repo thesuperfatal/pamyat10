@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { recordSession } from "@/lib/stats";
+import TrainerLesson from "@/components/TrainerLesson";
 
 const WORD_BANK = [
   "море",
@@ -94,7 +95,9 @@ export default function WordsTrainer() {
   const targetSet = useMemo(() => new Set(targets), [targets]);
 
   return (
-    <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
+    <div>
+      <TrainerLesson trainerId="words" />
+      <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
@@ -199,6 +202,7 @@ export default function WordsTrainer() {
           </button>
         </div>
       )}
+    </div>
     </div>
   );
 }

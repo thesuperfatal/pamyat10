@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { recordSession } from "@/lib/stats";
+import TrainerLesson from "@/components/TrainerLesson";
 
 const SYMBOLS = ["🌲", "⛵", "🔑", "🍎", "🎵", "☕", "📘", "🌙", "🦊", "⭐", "🏠", "🔔"];
 
@@ -60,7 +61,9 @@ export default function OrderTrainer() {
   }
 
   return (
-    <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
+    <div>
+      <TrainerLesson trainerId="order" />
+      <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
@@ -165,6 +168,7 @@ export default function OrderTrainer() {
           </button>
         </div>
       )}
+    </div>
     </div>
   );
 }

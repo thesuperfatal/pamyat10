@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { recordSession } from "@/lib/stats";
+import TrainerLesson from "@/components/TrainerLesson";
 
 type Phase = "ready" | "show" | "input" | "result";
 
@@ -47,7 +48,9 @@ export default function NumbersTrainer() {
   }
 
   return (
-    <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
+    <div>
+      <TrainerLesson trainerId="numbers" />
+      <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
@@ -128,6 +131,7 @@ export default function NumbersTrainer() {
           </button>
         </div>
       )}
+    </div>
     </div>
   );
 }

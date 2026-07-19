@@ -39,6 +39,12 @@ export default function HomePage() {
             Надолго (SRS)
           </Link>
           <Link
+            href="/learn/"
+            className="rounded-full border border-[var(--line)] bg-white px-5 py-2.5 text-sm font-medium text-[var(--ink)] hover:border-[var(--accent)]"
+          >
+            Обучение
+          </Link>
+          <Link
             href="/program/"
             className="rounded-full border border-[var(--line)] bg-white px-5 py-2.5 text-sm font-medium text-[var(--ink)] hover:border-[var(--accent)]"
           >
@@ -54,6 +60,22 @@ export default function HomePage() {
       </section>
 
       <DueTodayBanner />
+
+      <section className="mb-12 rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
+        <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold">
+          Сначала — короткое обучение
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+          У каждого тренажёра есть урок из трёх шагов: что делать и какой приём помогает.
+          При первом заходе откроется сам; потом — кнопка «Обучение» на странице.
+        </p>
+        <Link
+          href="/learn/"
+          className="mt-4 inline-block text-sm font-medium text-[var(--accent)] hover:underline"
+        >
+          Смотреть все уроки →
+        </Link>
+      </section>
 
       <section className="mb-12 rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
         <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold">

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { recordSession } from "@/lib/stats";
+import TrainerLesson from "@/components/TrainerLesson";
 
 const ICONS = ["🌲", "⛵", "🔑", "🍎", "🎵", "☕", "📘", "🌙", "🦊", "⭐", "🏠", "🔔"];
 
@@ -104,7 +105,9 @@ export default function PairsTrainer() {
     pairs <= 4 ? "grid-cols-4" : pairs <= 6 ? "grid-cols-4 sm:grid-cols-4" : "grid-cols-4 sm:grid-cols-4";
 
   return (
-    <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
+    <div>
+      <TrainerLesson trainerId="pairs" />
+      <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold">Пары</h1>
@@ -171,6 +174,7 @@ export default function PairsTrainer() {
           </button>
         </div>
       )}
+    </div>
     </div>
   );
 }
