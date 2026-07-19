@@ -29,5 +29,8 @@ npm run build
 
 ## Деплой
 
-Полная инструкция: **[DEPLOY-TIMEWEB.md](./DEPLOY-TIMEWEB.md)**  
-(поддомен → секреты FTP → push).
+Сейчас сайт доступен как раздел СчётИП: **https://biznes-ip.ru/memory/**  
+(сборка с `NEXT_PUBLIC_BASE_PATH=/memory`, заливка через workflow СчётИП).
+
+Позже на поддомене `memory.biznes-ip.ru` — собирать **без** basePath.  
+Инструкция по поддомену: **[DEPLOY-TIMEWEB.md](./DEPLOY-TIMEWEB.md)**.
