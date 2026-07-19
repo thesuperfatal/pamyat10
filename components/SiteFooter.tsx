@@ -16,6 +16,12 @@ export default function SiteFooter() {
             >
               СчётИП — счета и налоги для ИП
             </a>
+            <a
+              href="https://biznes-ip.ru/sad/"
+              className="rounded-full bg-white px-4 py-2 font-medium text-[var(--accent)] ring-1 ring-[var(--line)] hover:ring-[var(--accent)]"
+            >
+              Грядка10 — сад и огород
+            </a>
           </div>
         </div>
         <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">

@@ -11,9 +11,19 @@ const PROJECTS = [
     href: "https://biznes-ip.ru/memory/",
     hint: "тренировки памяти",
   },
+  {
+    id: "sad",
+    name: "Грядка10",
+    href: "https://biznes-ip.ru/sad/",
+    hint: "сад и огород",
+  },
 ] as const;
 
-export default function ProjectsBar({ current }: { current: "schet" | "memory" }) {
+export default function ProjectsBar({
+  current,
+}: {
+  current: "schet" | "memory" | "sad";
+}) {
   return (
     <div className="border-b border-[var(--line)] bg-[var(--bg-deep)]/80">
       <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 text-sm">
