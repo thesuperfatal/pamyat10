@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PairsTrainer from "@/components/PairsTrainer";
+import SectionPurpose from "@/components/SectionPurpose";
 
 export const metadata: Metadata = {
   title: "Тренажёр «Пары»",
-  description: "Найдите одинаковые карточки — тренировка внимания и зрительной памяти.",
+  description:
+    "Для чего раздел «Пары»: внимание и короткая зрительная память — найти одинаковые карточки без лишних ходов.",
 };
 
 export default function PairsPage() {
@@ -14,6 +16,7 @@ export default function PairsPage() {
         ← На главную
       </Link>
       <PairsTrainer />
+      <SectionPurpose id="pairs" />
     </div>
   );
 }

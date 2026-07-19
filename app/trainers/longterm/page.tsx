@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LongtermTrainer from "@/components/LongtermTrainer";
+import SectionPurpose from "@/components/SectionPurpose";
 
 export const metadata: Metadata = {
   title: "Тренажёр «Надолго»",
   description:
-    "Долговременная память: карточки с интервальными повторениями — через 1, 3, 7, 14 и 30 дней.",
+    "Для чего раздел «Надолго»: долговременная память через интервалы 1–30 дней — термины, даты, слова, формулы.",
 };
 
 export default function LongtermPage() {
@@ -15,6 +16,7 @@ export default function LongtermPage() {
         ← На главную
       </Link>
       <LongtermTrainer />
+      <SectionPurpose id="longterm" />
     </div>
   );
 }

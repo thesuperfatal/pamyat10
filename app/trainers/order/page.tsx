@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import OrderTrainer from "@/components/OrderTrainer";
+import SectionPurpose from "@/components/SectionPurpose";
 
 export const metadata: Metadata = {
   title: "Тренажёр «Порядок»",
-  description: "Запомните порядок символов и восстановите его.",
+  description:
+    "Для чего раздел «Порядок»: память на последовательность — что за чем шло. Один проход взглядом слева направо.",
 };
 
 export default function OrderPage() {
@@ -14,6 +16,7 @@ export default function OrderPage() {
         ← На главную
       </Link>
       <OrderTrainer />
+      <SectionPurpose id="order" />
     </div>
   );
 }

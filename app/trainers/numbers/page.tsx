@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import NumbersTrainer from "@/components/NumbersTrainer";
+import SectionPurpose from "@/components/SectionPurpose";
 
 export const metadata: Metadata = {
   title: "Тренажёр «Цифры»",
-  description: "Запомните ряд чисел и воспроизведите его по памяти.",
+  description:
+    "Для чего раздел «Цифры»: тренировка кратковременной памяти на числа — увидел ряд, воспроизвёл. Приём: пары как в телефоне.",
 };
 
 export default function NumbersPage() {
@@ -14,6 +16,7 @@ export default function NumbersPage() {
         ← На главную
       </Link>
       <NumbersTrainer />
+      <SectionPurpose id="numbers" />
     </div>
   );
 }

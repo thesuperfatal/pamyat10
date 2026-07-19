@@ -16,6 +16,9 @@ export default function SiteHeader() {
           </span>
         </Link>
         <nav className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[var(--muted)]">
+          <Link href="/about/" className="hover:text-[var(--accent)]">
+            О проекте
+          </Link>
           <Link href="/learn/" className="hover:text-[var(--accent)]">
             Обучение
           </Link>

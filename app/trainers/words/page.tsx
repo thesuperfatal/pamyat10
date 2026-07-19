@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import WordsTrainer from "@/components/WordsTrainer";
+import SectionPurpose from "@/components/SectionPurpose";
 
 export const metadata: Metadata = {
   title: "Тренажёр «Слова»",
-  description: "Запомните список слов и найдите их среди вариантов.",
+  description:
+    "Для чего раздел «Слова»: запоминание списка и точное узнавание среди похожих. Приём: мини-история из слов.",
 };
 
 export default function WordsPage() {
@@ -14,6 +16,7 @@ export default function WordsPage() {
         ← На главную
       </Link>
       <WordsTrainer />
+      <SectionPurpose id="words" />
     </div>
   );
 }
