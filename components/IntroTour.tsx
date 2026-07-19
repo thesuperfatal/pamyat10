@@ -9,6 +9,7 @@ import {
   INTRO_GOALS,
   INTRO_MAP,
   INTRO_STEPS,
+  INTRO_WELCOME,
   firstDayChecklist,
   getGoalById,
   loadChecklistDone,
@@ -102,46 +103,108 @@ export default function IntroTour() {
       </div>
 
       {step === "welcome" && (
-        <section className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
-            Добро пожаловать
-          </p>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight">
-            Знакомство с Память10
-          </h1>
-          <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">
-            Это не курс и не тест IQ. Здесь короткие тренировки внимания и памяти в браузере —
-            примерно 5–10 минут. Без регистрации: прогресс остаётся только на вашем устройстве.
-          </p>
-          <ul className="mt-4 space-y-2 text-sm text-[var(--muted)]">
-            <li className="flex gap-2">
-              <span className="text-[var(--accent)]">1.</span>
-              Выберите, что нужнее сегодня
-            </li>
-            <li className="flex gap-2">
-              <span className="text-[var(--accent)]">2.</span>
-              Попробуйте мини-раунд (~15 сек)
-            </li>
-            <li className="flex gap-2">
-              <span className="text-[var(--accent)]">3.</span>
-              Увидите карту и получите план на сегодня
-            </li>
-          </ul>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={next}
-              className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
-            >
-              Поехали · ~3 минуты
-            </button>
-            <Link
-              href="/"
-              onClick={() => markIntroDone()}
-              className="rounded-full border border-[var(--line)] px-5 py-2.5 text-sm hover:border-[var(--accent)]"
-            >
-              Пропустить
-            </Link>
+        <section className="space-y-4">
+          <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm sm:p-7">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+              {INTRO_WELCOME.eyebrow}
+            </p>
+            <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight sm:text-[2.1rem]">
+              {INTRO_WELCOME.title}
+            </h1>
+            <p className="mt-4 text-sm leading-relaxed text-[var(--muted)] sm:text-base">
+              {INTRO_WELCOME.lead}
+            </p>
+
+            <div className="mt-5 grid gap-2 sm:grid-cols-3">
+              {INTRO_WELCOME.promises.map((p) => (
+                <div
+                  key={p.label}
+                  className="rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-3 py-3 text-center"
+                >
+                  <p className="text-sm font-semibold text-[var(--accent)]">{p.label}</p>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">{p.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-3xl border border-[var(--line)] bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+                Вам сюда, если
+              </p>
+              <ul className="mt-3 space-y-2.5 text-sm text-[var(--muted)]">
+                {INTRO_WELCOME.yes.map((item) => (
+                  <li key={item} className="flex gap-2">
+                    <span className="mt-0.5 shrink-0 text-[var(--accent)]" aria-hidden>
+                      ✓
+                    </span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-3xl border border-[var(--line)] bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                Здесь не будет
+              </p>
+              <ul className="mt-3 space-y-2.5 text-sm text-[var(--muted)]">
+                {INTRO_WELCOME.no.map((item) => (
+                  <li key={item} className="flex gap-2">
+                    <span className="mt-0.5 shrink-0" aria-hidden>
+                      —
+                    </span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-[var(--line)] bg-white p-5 shadow-sm sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Что будет дальше
+            </p>
+            <ol className="mt-4 grid gap-2 sm:grid-cols-5">
+              {INTRO_WELCOME.roadmap.map((r) => (
+                <li
+                  key={r.n}
+                  className={`rounded-2xl px-3 py-3 ${
+                    r.n === "1"
+                      ? "bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]/40"
+                      : "bg-[var(--bg)]"
+                  }`}
+                >
+                  <p className="text-xs font-semibold text-[var(--accent)]">{r.n}</p>
+                  <p className="mt-1 text-sm font-medium text-[var(--ink)]">{r.title}</p>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">{r.text}</p>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-4 text-xs leading-relaxed text-[var(--muted)]">
+              Можно закрыть вкладку посередине — шаг сохранится. Подробные описания разделов всегда
+              есть в{" "}
+              <Link href="/about/" className="text-[var(--accent)] hover:underline">
+                «О проекте»
+              </Link>
+              .
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={next}
+                className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+              >
+                Понятно — выбрать цель
+              </button>
+              <Link
+                href="/"
+                onClick={() => markIntroDone()}
+                className="rounded-full border border-[var(--line)] px-5 py-2.5 text-sm hover:border-[var(--accent)]"
+              >
+                Уже знаю сайт — пропустить
+              </Link>
+            </div>
           </div>
         </section>
       )}
