@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Память10
 
-## Getting Started
+Отдельный проект развития памяти на поддомене `memory.biznes-ip.ru`.
 
-First, run the development server:
+Сестринский сайт: [СчётИП](https://biznes-ip.ru).
+
+## Что есть
+
+- Лендинг
+- 3 тренажёра: цифры, слова, порядок
+- Программа **«7 дней»** с отметками в браузере
+- Прогресс в `localStorage` (сессии, серия дней, лучшие результаты)
+
+## Локально
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Сборка статики:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Результат в папке `out/`.
 
-## Learn More
+## Деплой на Timeweb (поддомен)
 
-To learn more about Next.js, take a look at the following resources:
+### 1. DNS (у регистратора домена biznes-ip.ru)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Добавьте запись для поддомена, например:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- тип **A** → IP сервера Timeweb (тот же, что у `biznes-ip.ru`), имя `memory`
 
-## Deploy on Vercel
+или
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- тип **CNAME** → на хост Timeweb, если так принято в панели
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 2. Сайт в панели Timeweb
+
+1. Создайте сайт / поддомен `memory.biznes-ip.ru`.
+2. Отдельная папка `public_html` — **не** смешивать с СчётИП.
+
+### 3. GitHub Actions (как у СчётИП)
+
+В репозитории Память10 → Settings → Secrets:
+
+| Secret | Значение |
+|--------|----------|
+| `FTP_SERVER` | хост FTP Timeweb |
+| `FTP_USERNAME` | логин FTP |
+| `FTP_PASSWORD` | пароль FTP |
+| `FTP_SERVER_DIR` | путь, напр. `/memory.biznes-ip.ru/public_html/` |
+
+Workflow: `.github/workflows/deploy-timeweb.yml` — деплой при push в `main`.
+
+### 4. Ручная заливка
+
+Если без Actions: `npm run build` и залить содержимое `out/` в `public_html` поддомена.
