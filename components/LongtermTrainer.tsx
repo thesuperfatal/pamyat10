@@ -17,6 +17,15 @@ import { applySrsBackup, downloadSrsBackup, parseSrsBackup } from "@/lib/srsBack
 
 type Phase = "ready" | "front" | "back" | "done";
 
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default function LongtermTrainer() {
   const [deck, setDeck] = useState<SrsCard[]>([]);
   const [queue, setQueue] = useState<SrsCard[]>([]);
@@ -30,6 +39,8 @@ export default function LongtermTrainer() {
   const [showList, setShowList] = useState(false);
   const [backupMsg, setBackupMsg] = useState<string | null>(null);
   const [backupErr, setBackupErr] = useState<string | null>(null);
+  /** Карточки, уже один раз вернувшиеся в сессию после «забыл» */
+  const [requeued, setRequeued] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     setDeck(loadDeck());
@@ -37,7 +48,10 @@ export default function LongtermTrainer() {
   }, []);
 
   const dueToday = useMemo(() => (ready ? dueCards(deck) : []), [deck, ready]);
-  const stats = useMemo(() => (ready ? deckStats(deck) : { total: 0, due: 0, strong: 0 }), [deck, ready]);
+  const stats = useMemo(
+    () => (ready ? deckStats(deck) : { total: 0, due: 0, strong: 0 }),
+    [deck, ready],
+  );
   const current = queue[0] ?? null;
 
   function start() {
@@ -47,10 +61,11 @@ export default function LongtermTrainer() {
       setQueue([]);
       return;
     }
-    setQueue([...due]);
+    setQueue(shuffle(due));
     setFlipped(false);
     setDoneCount(0);
     setScore(0);
+    setRequeued(new Set());
     setPhase("front");
   }
 
@@ -72,7 +87,13 @@ export default function LongtermTrainer() {
     setDoneCount((n) => n + 1);
     recordSession("longterm", nextScore);
 
-    const rest = queue.slice(1);
+    let rest = queue.slice(1);
+    // Забытую карточку ещё раз в конец сессии (один раз)
+    if (!remembered && !requeued.has(current.id)) {
+      rest = [...rest, updated];
+      setRequeued((prev) => new Set(prev).add(current.id));
+    }
+
     if (rest.length === 0) {
       setQueue([]);
       setPhase("done");
@@ -83,6 +104,30 @@ export default function LongtermTrainer() {
     setPhase("front");
   }
 
+  useEffect(() => {
+    if (phase !== "front" && phase !== "back") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        if (phase === "front") showBack();
+      }
+      if (phase === "back") {
+        if (e.key === "1" || e.key === "н" || e.key === "N" || e.key === "n") {
+          e.preventDefault();
+          answer(false);
+        }
+        if (e.key === "2" || e.key === "п" || e.key === "Y" || e.key === "y") {
+          e.preventDefault();
+          answer(true);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- answer/showBack use latest state via closures on each render
+  }, [phase, current, queue, deck, score, doneCount, requeued]);
+
   function onReset() {
     if (!window.confirm("Сбросить прогресс и вернуть стартовую колоду?")) return;
     setDeck(resetDeck());
@@ -90,6 +135,7 @@ export default function LongtermTrainer() {
     setPhase("ready");
     setScore(0);
     setDoneCount(0);
+    setRequeued(new Set());
   }
 
   function onAdd(e: React.FormEvent) {
@@ -134,7 +180,8 @@ export default function LongtermTrainer() {
           <div className="space-y-4">
             <p className="text-sm leading-relaxed text-[var(--muted)]">
               Смотрите вопрос, вспоминаете, отмечаете «помню» или «забыл». Чем лучше помните —
-              тем реже карточка возвращается. Так знание уходит в долговременную память.
+              тем реже карточка возвращается. Забытая карточка ещё раз появится в конце сессии.
+              Клавиши: пробел — ответ, 1 — забыл, 2 — помню.
             </p>
             {!ready ? (
               <p className="text-sm text-[var(--muted)]">Загрузка колоды…</p>
@@ -185,29 +232,37 @@ export default function LongtermTrainer() {
               </p>
             </div>
             {phase === "front" ? (
-              <button
-                type="button"
-                onClick={showBack}
-                className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
-              >
-                Показать ответ
-              </button>
-            ) : (
-              <div className="flex flex-wrap gap-3">
+              <div className="space-y-2">
                 <button
                   type="button"
-                  onClick={() => answer(false)}
-                  className="rounded-full border border-rose-300 bg-rose-50 px-5 py-2.5 text-sm font-medium text-rose-800"
-                >
-                  Забыл
-                </button>
-                <button
-                  type="button"
-                  onClick={() => answer(true)}
+                  onClick={showBack}
                   className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
                 >
-                  Помню
+                  Показать ответ
                 </button>
+                <p className="text-xs text-[var(--muted)]">Пробел или Enter</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => answer(false)}
+                    className="rounded-full border border-rose-300 bg-rose-50 px-5 py-2.5 text-sm font-medium text-rose-800"
+                  >
+                    Забыл · 1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => answer(true)}
+                    className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+                  >
+                    Помню · 2
+                  </button>
+                </div>
+                <p className="text-xs text-[var(--muted)]">
+                  После «забыл» карточка вернётся в конец этой сессии ещё раз
+                </p>
               </div>
             )}
           </div>

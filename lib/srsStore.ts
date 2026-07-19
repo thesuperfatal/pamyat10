@@ -18,6 +18,20 @@ function seedDeck(): SrsCard[] {
   }));
 }
 
+/** Подтянуть новые демо-карточки в уже существующую колоду */
+function mergeMissingSeeds(deck: SrsCard[]): SrsCard[] {
+  const have = new Set(deck.map((c) => c.id));
+  const today = todayKey();
+  const missing = SEED_CARDS.filter((c) => !have.has(c.id)).map((c) => ({
+    ...c,
+    intervalDays: 0,
+    nextReview: today,
+    reps: 0,
+  }));
+  if (missing.length === 0) return deck;
+  return [...deck, ...missing];
+}
+
 export function loadDeck(): SrsCard[] {
   if (typeof window === "undefined") return [];
   try {
@@ -28,7 +42,14 @@ export function loadDeck(): SrsCard[] {
       return seeded;
     }
     const parsed = JSON.parse(raw) as SrsCard[];
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : seedDeck();
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      const seeded = seedDeck();
+      saveDeck(seeded);
+      return seeded;
+    }
+    const merged = mergeMissingSeeds(parsed);
+    if (merged.length !== parsed.length) saveDeck(merged);
+    return merged;
   } catch {
     return seedDeck();
   }
