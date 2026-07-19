@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { recordSession } from "@/lib/stats";
-import { todayKey, type SrsCard } from "@/lib/srs";
+import { isHardCard, todayKey, type SrsCard } from "@/lib/srs";
 import {
   addCard,
   deckStats,
   dueCards,
+  listTags,
   loadDeck,
   removeCard,
   resetDeck,
@@ -14,6 +15,7 @@ import {
   saveDeck,
 } from "@/lib/srsStore";
 import { applySrsBackup, downloadSrsBackup, parseSrsBackup } from "@/lib/srsBackup";
+import { currentStreak, loadStreak, markReviewDay } from "@/lib/srsStreak";
 
 type Phase = "ready" | "front" | "back" | "done";
 
@@ -26,6 +28,13 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function filterDue(deck: SrsCard[], tag: string, hardOnly: boolean): SrsCard[] {
+  let due = dueCards(deck);
+  if (tag) due = due.filter((c) => c.tag === tag);
+  if (hardOnly) due = due.filter(isHardCard);
+  return due;
+}
+
 export default function LongtermTrainer() {
   const [deck, setDeck] = useState<SrsCard[]>([]);
   const [queue, setQueue] = useState<SrsCard[]>([]);
@@ -36,26 +45,35 @@ export default function LongtermTrainer() {
   const [ready, setReady] = useState(false);
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [filterTag, setFilterTag] = useState("");
+  const [hardOnly, setHardOnly] = useState(false);
   const [showList, setShowList] = useState(false);
   const [backupMsg, setBackupMsg] = useState<string | null>(null);
   const [backupErr, setBackupErr] = useState<string | null>(null);
+  const [streak, setStreak] = useState(0);
   /** Карточки, уже один раз вернувшиеся в сессию после «забыл» */
   const [requeued, setRequeued] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     setDeck(loadDeck());
+    setStreak(currentStreak(loadStreak().days));
     setReady(true);
   }, []);
 
-  const dueToday = useMemo(() => (ready ? dueCards(deck) : []), [deck, ready]);
+  const tags = useMemo(() => (ready ? listTags(deck) : []), [deck, ready]);
+  const dueToday = useMemo(
+    () => (ready ? filterDue(deck, filterTag, hardOnly) : []),
+    [deck, ready, filterTag, hardOnly],
+  );
   const stats = useMemo(
-    () => (ready ? deckStats(deck) : { total: 0, due: 0, strong: 0 }),
+    () => (ready ? deckStats(deck) : { total: 0, due: 0, strong: 0, hard: 0 }),
     [deck, ready],
   );
   const current = queue[0] ?? null;
 
   function start() {
-    const due = dueCards(loadDeck());
+    const due = filterDue(loadDeck(), filterTag, hardOnly);
     if (due.length === 0) {
       setPhase("done");
       setQueue([]);
@@ -86,9 +104,9 @@ export default function LongtermTrainer() {
     setScore(nextScore);
     setDoneCount((n) => n + 1);
     recordSession("longterm", nextScore);
+    setStreak(currentStreak(markReviewDay().days));
 
     let rest = queue.slice(1);
-    // Забытую карточку ещё раз в конец сессии (один раз)
     if (!remembered && !requeued.has(current.id)) {
       rest = [...rest, updated];
       setRequeued((prev) => new Set(prev).add(current.id));
@@ -125,7 +143,7 @@ export default function LongtermTrainer() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- answer/showBack use latest state via closures on each render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, current, queue, deck, score, doneCount, requeued]);
 
   function onReset() {
@@ -136,14 +154,17 @@ export default function LongtermTrainer() {
     setScore(0);
     setDoneCount(0);
     setRequeued(new Set());
+    setFilterTag("");
+    setHardOnly(false);
   }
 
   function onAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!front.trim() || !back.trim()) return;
-    setDeck(addCard(front, back));
+    setDeck(addCard(front, back, tagInput));
     setFront("");
     setBack("");
+    setTagInput("");
   }
 
   function onRemove(id: string) {
@@ -173,21 +194,60 @@ export default function LongtermTrainer() {
             <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-[var(--accent)]">
               Устойчивые: {stats.strong}
             </span>
+            <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-[var(--accent)]">
+              Сложные: {stats.hard}
+            </span>
+            <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-[var(--accent)]">
+              Серия: {streak}{" "}
+              {streak === 1 ? "день" : streak > 1 && streak < 5 ? "дня" : "дней"}
+            </span>
           </div>
         </div>
 
         {phase === "ready" && (
           <div className="space-y-4">
             <p className="text-sm leading-relaxed text-[var(--muted)]">
-              Смотрите вопрос, вспоминаете, отмечаете «помню» или «забыл». Чем лучше помните —
-              тем реже карточка возвращается. Забытая карточка ещё раз появится в конце сессии.
-              Клавиши: пробел — ответ, 1 — забыл, 2 — помню.
+              Смотрите вопрос, вспоминаете, отмечаете «помню» или «забыл». Можно сузить сессию по
+              теме или взять только сложные карточки. Клавиши: пробел — ответ, 1 — забыл, 2 —
+              помню.
             </p>
+
+            {ready ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <span className="text-[var(--muted)]">Тема</span>
+                  <select
+                    value={filterTag}
+                    onChange={(e) => setFilterTag(e.target.value)}
+                    className="rounded-full border border-[var(--line)] bg-[var(--bg)] px-3 py-1.5 outline-none focus:border-[var(--accent)]"
+                  >
+                    <option value="">Все темы</option>
+                    {tags.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={hardOnly}
+                    onChange={(e) => setHardOnly(e.target.checked)}
+                    className="size-4 accent-[var(--accent)]"
+                  />
+                  Только сложные
+                </label>
+              </div>
+            ) : null}
+
             {!ready ? (
               <p className="text-sm text-[var(--muted)]">Загрузка колоды…</p>
             ) : dueToday.length === 0 ? (
               <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
-                На сегодня повторений нет. Добавьте свои карточки ниже или зайдите завтра.
+                {hardOnly || filterTag
+                  ? "По выбранному фильтру сегодня повторять нечего. Снимите фильтр или зайдите завтра."
+                  : "На сегодня повторений нет. Добавьте свои карточки ниже или зайдите завтра."}
               </p>
             ) : (
               <button
@@ -224,7 +284,9 @@ export default function LongtermTrainer() {
           <div className="space-y-4">
             <p className="text-xs text-[var(--muted)]">
               {doneCount + 1} из {doneCount + queue.length} · интервал: {current.intervalDays || 0}{" "}
-              дн. · дата: {todayKey()}
+              дн.
+              {current.tag ? ` · ${current.tag}` : ""}
+              {(current.fails ?? 0) > 0 ? ` · забывали: ${current.fails}` : ""} · {todayKey()}
             </p>
             <div className="flex min-h-36 items-center justify-center rounded-3xl bg-[var(--bg)] px-6 py-10 text-center">
               <p className="font-[family-name:var(--font-display)] text-2xl font-semibold leading-snug">
@@ -273,7 +335,10 @@ export default function LongtermTrainer() {
             <p className="text-lg font-medium text-[var(--accent)]">
               {doneCount > 0 ? `Сессия готова · ${doneCount} карточек` : "Нечего повторять сегодня"}
             </p>
-            <p className="text-sm text-[var(--muted)]">Очки за сессию: {score}</p>
+            <p className="text-sm text-[var(--muted)]">
+              Очки за сессию: {score}
+              {streak > 0 ? ` · серия ${streak} дн.` : ""}
+            </p>
             <button
               type="button"
               onClick={() => setPhase("ready")}
@@ -316,6 +381,21 @@ export default function LongtermTrainer() {
                   className="mt-1 w-full rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-3 py-2.5 outline-none focus:border-[var(--accent)]"
                 />
               </label>
+              <label className="block text-sm sm:col-span-2">
+                <span className="text-[var(--muted)]">Тема (необязательно)</span>
+                <input
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  placeholder="География, Английский, Работа…"
+                  list="srs-tags"
+                  className="mt-1 w-full rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-3 py-2.5 outline-none focus:border-[var(--accent)]"
+                />
+                <datalist id="srs-tags">
+                  {tags.map((t) => (
+                    <option key={t} value={t} />
+                  ))}
+                </datalist>
+              </label>
             </div>
             <button
               type="submit"
@@ -341,6 +421,8 @@ export default function LongtermTrainer() {
                       <p className="text-[var(--muted)]">{c.back}</p>
                       <p className="mt-1 text-xs text-[var(--muted)]">
                         повтор {c.nextReview} · интервал {c.intervalDays} дн.
+                        {c.tag ? ` · ${c.tag}` : ""}
+                        {isHardCard(c) ? " · сложная" : ""}
                       </p>
                     </div>
                     <button
