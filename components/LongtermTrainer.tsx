@@ -21,12 +21,14 @@ export default function LongtermTrainer() {
   const [flipped, setFlipped] = useState(false);
   const [score, setScore] = useState(0);
   const [doneCount, setDoneCount] = useState(0);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setDeck(loadDeck());
+    setReady(true);
   }, []);
 
-  const dueToday = useMemo(() => dueCards(deck), [deck]);
+  const dueToday = useMemo(() => (ready ? dueCards(deck) : []), [deck, ready]);
   const current = queue[0] ?? null;
 
   function start() {
@@ -109,7 +111,9 @@ export default function LongtermTrainer() {
             Смотрите вопрос, вспоминаете ответ, затем отмечаете «помню» или «забыл». Карточка
             вернётся через 1, 3, 7, 14 или 30 дней — так знания закрепляются надолго.
           </p>
-          {dueToday.length === 0 ? (
+          {!ready ? (
+            <p className="text-sm text-[var(--muted)]">Загрузка колоды…</p>
+          ) : dueToday.length === 0 ? (
             <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
               На сегодня всё повторено. Загляните завтра или сбросьте колоду.
             </p>
@@ -123,13 +127,15 @@ export default function LongtermTrainer() {
               {dueToday.length === 1 ? "карточку" : dueToday.length < 5 ? "карточки" : "карточек"}
             </button>
           )}
-          <button
-            type="button"
-            onClick={onReset}
-            className="block text-sm text-[var(--muted)] hover:text-[var(--accent)]"
-          >
-            Сбросить колоду
-          </button>
+          {ready ? (
+            <button
+              type="button"
+              onClick={onReset}
+              className="block text-sm text-[var(--muted)] hover:text-[var(--accent)]"
+            >
+              Сбросить колоду
+            </button>
+          ) : null}
         </div>
       )}
 
