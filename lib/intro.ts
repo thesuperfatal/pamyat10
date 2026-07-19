@@ -245,20 +245,61 @@ export const INTRO_CONTRAST = {
 export interface ChecklistItem {
   id: string;
   label: string;
+  hint?: string;
   href?: string;
 }
 
 export function firstDayChecklist(goal: IntroGoal | null): ChecklistItem[] {
   const main: ChecklistItem = goal
-    ? { id: "main", label: `Пройти 3–5 минут: ${goal.label}`, href: goal.href }
-    : { id: "main", label: "Пройти 3–5 минут в любом тренажёре", href: "/trainers/numbers/" };
+    ? {
+        id: "main",
+        label: `3–5 минут в «${goal.leadsTo}»`,
+        hint: goal.situation,
+        href: goal.href,
+      }
+    : {
+        id: "main",
+        label: "3–5 минут в любом тренажёре",
+        hint: "Начните с «Цифр» — самый короткий старт",
+        href: "/trainers/numbers/",
+      };
   return [
     main,
-    { id: "lesson", label: "Открыть обучение на странице тренажёра (3 шага)" },
-    { id: "program", label: "Глянуть программу «7 дней»", href: "/program/" },
-    { id: "return", label: "Завтра зайти снова на 5 минут" },
+    {
+      id: "lesson",
+      label: "Пройти обучение на странице тренажёра",
+      hint: "Три шага: правила и приём. Откроется само при первом заходе.",
+      href: goal?.href,
+    },
+    {
+      id: "program",
+      label: "Глянуть программу «7 дней»",
+      hint: "Если захотите готовый маршрут на неделю",
+      href: "/program/",
+    },
+    {
+      id: "return",
+      label: "Завтра снова 5 минут",
+      hint: "Регулярность важнее длины сессии",
+    },
   ];
 }
+
+/** Контент финального шага — план */
+export const INTRO_DONE_STEP = {
+  eyebrow: "Готово · Ваш план",
+  titleFallback: "С чего начать",
+  leadFallback: "Можно начать с цифр или взять готовую программу на неделю.",
+  nextLabel: "Что сделать сегодня",
+  checklistTitle: "Чеклист первого дня",
+  checklistLead: "Отмечайте по мере дела — список сохранится в этом браузере.",
+  allDone: "День закрыт — завтра можно просто открыть тренажёр и потренироваться.",
+  secondary: [
+    { label: "Программа «7 дней»", href: "/program/", text: "Готовый маршрут по дням" },
+    { label: "Все уроки", href: "/learn/", text: "Приёмы по каждому разделу" },
+    { label: "О проекте", href: "/about/", text: "Подробные описания разделов" },
+  ],
+};
 
 /** Контент шага 5 — данные и доверие */
 export const INTRO_PRIVACY_STEP = {
