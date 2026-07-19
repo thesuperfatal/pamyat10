@@ -1,4 +1,4 @@
-export type TrainerId = "numbers" | "words" | "order" | "pairs" | "longterm";
+export type TrainerId = "numbers" | "words" | "order" | "pairs" | "longterm" | "images";
 
 export interface SessionRecord {
   date: string;
@@ -20,7 +20,7 @@ const emptyStats = (): MemoryStats => ({
   sessions: 0,
   lastDate: null,
   streak: 0,
-  best: { numbers: 0, words: 0, order: 0, pairs: 0, longterm: 0 },
+  best: { numbers: 0, words: 0, order: 0, pairs: 0, longterm: 0, images: 0 },
   history: [],
 });
 

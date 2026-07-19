@@ -2,7 +2,7 @@ export interface DayPlan {
   day: number;
   title: string;
   focus: string;
-  trainer: "numbers" | "words" | "order" | "pairs" | "longterm";
+  trainer: "numbers" | "words" | "order" | "pairs" | "longterm" | "images";
   rounds: number;
   tip: string;
 }
@@ -43,11 +43,11 @@ export const SEVEN_DAY_PLAN: DayPlan[] = [
   },
   {
     day: 5,
-    title: "Карточки «Пары»",
-    focus: "Найти одинаковые карточки без лишних ходов",
-    trainer: "pairs",
-    rounds: 2,
-    tip: "Сначала пробегите глазами крайние карточки — края запоминаются легче центра.",
+    title: "Память образов",
+    focus: "Запомнить, где какой образ стоял на сетке",
+    trainer: "images",
+    rounds: 3,
+    tip: "Соберите сетку в одну сцену: «солнце слева, дом справа». Позиция + картинка держатся крепче по отдельности.",
   },
   {
     day: 6,

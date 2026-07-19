@@ -11,6 +11,7 @@ const labels: Record<string, string> = {
   words: "Слова",
   order: "Порядок",
   pairs: "Пары",
+  images: "Образы",
   longterm: "Надолго",
 };
 

@@ -38,6 +38,13 @@ export const TRAINERS: TrainerMeta[] = [
     minutes: "3–5 мин",
   },
   {
+    id: "images",
+    title: "Образы",
+    short: "Запомните, где какой образ на сетке, и расставьте заново",
+    href: "/trainers/images/",
+    minutes: "3–5 мин",
+  },
+  {
     id: "longterm",
     title: "Надолго",
     short: "Долговременная память: повторения через 1–30 дней",
