@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DueTodayBanner from "@/components/DueTodayBanner";
 import StatsSummary from "@/components/StatsSummary";
 import { ARTICLES } from "@/lib/articles";
 import { TRAINERS } from "@/lib/trainers";
@@ -44,6 +45,8 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      <DueTodayBanner />
 
       <section className="mb-12 rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
         <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold">

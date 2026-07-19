@@ -13,6 +13,7 @@ import {
   reviewCard,
   saveDeck,
 } from "@/lib/srsStore";
+import { applySrsBackup, downloadSrsBackup, parseSrsBackup } from "@/lib/srsBackup";
 
 type Phase = "ready" | "front" | "back" | "done";
 
@@ -27,6 +28,8 @@ export default function LongtermTrainer() {
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
   const [showList, setShowList] = useState(false);
+  const [backupMsg, setBackupMsg] = useState<string | null>(null);
+  const [backupErr, setBackupErr] = useState<string | null>(null);
 
   useEffect(() => {
     setDeck(loadDeck());
@@ -297,6 +300,63 @@ export default function LongtermTrainer() {
               </ul>
             </div>
           )}
+
+          <div className="rounded-3xl border border-[var(--line)] bg-white p-5 shadow-sm">
+            <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold">
+              Копия колоды
+            </h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Скачайте JSON, чтобы не потерять свои карточки и интервалы при смене телефона.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setBackupErr(null);
+                  downloadSrsBackup();
+                  setBackupMsg("Файл колоды сохранён.");
+                }}
+                className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+              >
+                Скачать колоду
+              </button>
+              <label className="cursor-pointer rounded-full border border-[var(--line)] px-5 py-2.5 text-sm hover:border-[var(--accent)]">
+                Загрузить JSON
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    setBackupMsg(null);
+                    setBackupErr(null);
+                    try {
+                      const data = parseSrsBackup(await file.text());
+                      if (
+                        !window.confirm(
+                          `Импортировать колоду (${data.deck.length} карточек)? Текущая будет заменена.`,
+                        )
+                      ) {
+                        return;
+                      }
+                      setDeck(applySrsBackup(data));
+                      setBackupMsg(`Импортировано карточек: ${data.deck.length}`);
+                    } catch (err) {
+                      setBackupErr(err instanceof Error ? err.message : "Ошибка файла");
+                    }
+                  }}
+                />
+              </label>
+            </div>
+            {backupMsg ? (
+              <p className="mt-3 text-sm text-[var(--accent)]">{backupMsg}</p>
+            ) : null}
+            {backupErr ? (
+              <p className="mt-3 text-sm text-rose-700">{backupErr}</p>
+            ) : null}
+          </div>
         </>
       )}
     </div>

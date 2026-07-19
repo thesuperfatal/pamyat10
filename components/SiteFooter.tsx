@@ -30,6 +30,9 @@ export default function SiteFooter() {
             <Link href="/program/" className="hover:text-[var(--accent)]">
               7 дней
             </Link>
+            <Link href="/trainers/longterm/" className="hover:text-[var(--accent)]">
+              Надолго
+            </Link>
             <Link href="/articles/" className="hover:text-[var(--accent)]">
               Статьи
             </Link>
