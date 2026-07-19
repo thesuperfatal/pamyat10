@@ -11,6 +11,7 @@ import {
   INTRO_MAP,
   INTRO_MAP_KINDS,
   INTRO_MAP_STEP,
+  INTRO_PRIVACY_STEP,
   INTRO_STEPS,
   INTRO_TRY_STEP,
   INTRO_WELCOME,
@@ -494,28 +495,72 @@ export default function IntroTour() {
       )}
 
       {step === "privacy" && (
-        <section className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
-            Как хранятся данные
-          </h2>
-          <div className="mt-4 space-y-3 text-sm leading-relaxed text-[var(--muted)]">
-            <p>
-              Очки, серия дней и колода «Надолго» лежат в браузере на этом телефоне или компьютере.
-              На сервер аккаунт не создаётся.
+        <section className="space-y-4">
+          <div className="rounded-3xl border border-[var(--line)] bg-white p-6 shadow-sm sm:p-7">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+              {INTRO_PRIVACY_STEP.eyebrow}
             </p>
-            <p>
-              Сайт — не лечение и не диагностика. Это повседневная практика внимания и запоминания.
-            </p>
-            <p>
-              Перед тренажёром можно открыть короткое обучение (3 шага) — при первом заходе оно
-              появится само.
+            <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-semibold sm:text-3xl">
+              {INTRO_PRIVACY_STEP.title}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--muted)] sm:text-base">
+              {INTRO_PRIVACY_STEP.lead}
             </p>
           </div>
-          <div className="mt-6 flex flex-wrap gap-3">
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-3xl border border-[var(--line)] bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+                Что сохраняется здесь
+              </p>
+              <ul className="mt-3 space-y-3">
+                {INTRO_PRIVACY_STEP.stored.map((item) => (
+                  <li key={item.title} className="rounded-2xl bg-[var(--bg)] px-3 py-2.5">
+                    <p className="text-sm font-medium text-[var(--ink)]">{item.title}</p>
+                    <p className="mt-0.5 text-xs text-[var(--muted)]">{item.text}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-3xl border border-[var(--line)] bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                Чего нет
+              </p>
+              <ul className="mt-3 space-y-3">
+                {INTRO_PRIVACY_STEP.notStored.map((item) => (
+                  <li key={item.title} className="rounded-2xl bg-[var(--bg)] px-3 py-2.5">
+                    <p className="text-sm font-medium text-[var(--ink)]">{item.title}</p>
+                    <p className="mt-0.5 text-xs text-[var(--muted)]">{item.text}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-dashed border-[var(--line)] bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Важно знать
+            </p>
+            <ul className="mt-3 space-y-2.5 text-sm leading-relaxed text-[var(--muted)]">
+              {INTRO_PRIVACY_STEP.caveats.map((c) => (
+                <li key={c.slice(0, 32)} className="flex gap-2">
+                  <span className="mt-0.5 shrink-0 text-[var(--accent)]">•</span>
+                  <span>{c}</span>
+                </li>
+              ))}
+            </ul>
+            {goal ? (
+              <p className="mt-4 rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
+                Дальше соберём план: начать с «{goal.leadsTo}».
+              </p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={back}
-              className="rounded-full border border-[var(--line)] px-4 py-2 text-sm hover:border-[var(--accent)]"
+              className="rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm hover:border-[var(--accent)]"
             >
               Назад
             </button>
@@ -524,7 +569,7 @@ export default function IntroTour() {
               onClick={() => finish(goal)}
               className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
             >
-              Готово — план на сегодня
+              {INTRO_PRIVACY_STEP.cta}
             </button>
           </div>
         </section>
