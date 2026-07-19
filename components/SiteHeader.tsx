@@ -20,6 +20,9 @@ export default function SiteHeader() {
           <Link href="/program/" className="hover:text-[var(--accent)]">
             7 дней
           </Link>
+          <Link href="/articles/" className="hover:text-[var(--accent)]">
+            Статьи
+          </Link>
           <Link href="/stats/" className="hover:text-[var(--accent)]">
             Прогресс
           </Link>

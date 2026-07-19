@@ -1,5 +1,6 @@
 import Link from "next/link";
 import StatsSummary from "@/components/StatsSummary";
+import { ARTICLES } from "@/lib/articles";
 import { TRAINERS } from "@/lib/trainers";
 
 export default function HomePage() {
@@ -89,6 +90,30 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+      </section>
+
+      <section className="mt-14">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold">
+            Статьи
+          </h2>
+          <Link href="/articles/" className="text-sm text-[var(--accent)] hover:underline">
+            Все →
+          </Link>
+        </div>
+        <ul className="space-y-3">
+          {ARTICLES.map((a) => (
+            <li key={a.slug}>
+              <Link
+                href={`/articles/${a.slug}/`}
+                className="block rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-sm hover:border-[var(--accent)]"
+              >
+                <span className="font-medium">{a.title}</span>
+                <span className="mt-0.5 block text-[var(--muted)]">{a.description}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="mt-14 rounded-3xl border border-[var(--line)] bg-white/70 p-6">
