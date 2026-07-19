@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { SITE_NAV, TRAINER_NAV } from "@/lib/nav";
 import { SITE_NAME } from "@/lib/site";
 
 export default function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-[var(--line)] bg-white/60 py-6 text-sm text-[var(--muted)]">
-      <div className="mx-auto max-w-3xl space-y-4 px-4">
+    <footer className="mt-auto border-t border-[var(--line)] bg-white/60 py-8 text-sm text-[var(--muted)]">
+      <div className="mx-auto max-w-3xl space-y-6 px-4">
         <div className="rounded-2xl border border-[var(--line)] bg-[var(--bg-deep)]/60 px-4 py-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
             Другие проекты
@@ -24,38 +25,40 @@ export default function SiteFooter() {
             </a>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-          <p>{SITE_NAME} — короткие тренировки памяти в браузере</p>
-          <nav className="flex flex-wrap justify-center gap-4">
-            <Link href="/intro/" className="hover:text-[var(--accent)]">
-              Знакомство
-            </Link>
-            <Link href="/about/" className="hover:text-[var(--accent)]">
-              О проекте
-            </Link>
-            <Link href="/learn/" className="hover:text-[var(--accent)]">
-              Обучение
-            </Link>
-            <Link href="/program/" className="hover:text-[var(--accent)]">
-              7 дней
-            </Link>
-            <Link href="/trainers/images/" className="hover:text-[var(--accent)]">
-              Образы
-            </Link>
-            <Link href="/trainers/longterm/" className="hover:text-[var(--accent)]">
-              Надолго
-            </Link>
-            <Link href="/articles/" className="hover:text-[var(--accent)]">
-              Статьи
-            </Link>
-            <Link href="/faq/" className="hover:text-[var(--accent)]">
-              FAQ
-            </Link>
-            <Link href="/stats/" className="hover:text-[var(--accent)]">
-              Прогресс
-            </Link>
-          </nav>
+
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Тренажёры
+            </p>
+            <nav className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5">
+              {TRAINER_NAV.map((link) => (
+                <Link key={link.href} href={link.href} className="hover:text-[var(--accent)]">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Разделы
+            </p>
+            <nav className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5">
+              <Link href="/" className="hover:text-[var(--accent)]">
+                Главная
+              </Link>
+              {SITE_NAV.map((link) => (
+                <Link key={link.href} href={link.href} className="hover:text-[var(--accent)]">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
+
+        <p className="text-center sm:text-left">
+          {SITE_NAME} — короткие тренировки памяти в браузере
+        </p>
       </div>
     </footer>
   );
