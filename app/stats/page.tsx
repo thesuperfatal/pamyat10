@@ -11,6 +11,7 @@ const labels: Record<string, string> = {
   words: "Слова",
   order: "Порядок",
   pairs: "Пары",
+  longterm: "Надолго",
 };
 
 export default function StatsPage() {

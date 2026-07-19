@@ -14,8 +14,8 @@ export default function HomePage() {
           Память10
         </h1>
         <p className="mt-4 max-w-xl text-lg leading-relaxed text-[var(--muted)]">
-          Короткие тренировки в браузере: цифры, слова, порядок и пары. Без регистрации —
-          прогресс хранится только у вас на устройстве.
+          Короткие тренировки в браузере: цифры, слова, порядок, пары и долговременные
+          карточки. Без регистрации — прогресс хранится только у вас на устройстве.
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link
@@ -23,6 +23,12 @@ export default function HomePage() {
             className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
           >
             Начать с цифр
+          </Link>
+          <Link
+            href="/trainers/longterm/"
+            className="rounded-full border border-[var(--line)] bg-white px-5 py-2.5 text-sm font-medium text-[var(--ink)] hover:border-[var(--accent)]"
+          >
+            Надолго (SRS)
           </Link>
           <Link
             href="/program/"

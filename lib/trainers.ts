@@ -37,4 +37,11 @@ export const TRAINERS: TrainerMeta[] = [
     href: "/trainers/pairs/",
     minutes: "3–5 мин",
   },
+  {
+    id: "longterm",
+    title: "Надолго",
+    short: "Долговременная память: повторения через 1–30 дней",
+    href: "/trainers/longterm/",
+    minutes: "5–10 мин",
+  },
 ];
