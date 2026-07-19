@@ -13,6 +13,7 @@ function abs(path: string): string {
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages = [
     "/",
+    "/intro/",
     "/about/",
     "/learn/",
     "/program/",

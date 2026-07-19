@@ -27,6 +27,9 @@ export default function SiteFooter() {
         <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
           <p>{SITE_NAME} — короткие тренировки памяти в браузере</p>
           <nav className="flex flex-wrap justify-center gap-4">
+            <Link href="/intro/" className="hover:text-[var(--accent)]">
+              Знакомство
+            </Link>
             <Link href="/about/" className="hover:text-[var(--accent)]">
               О проекте
             </Link>

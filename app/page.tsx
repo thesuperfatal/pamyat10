@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DueTodayBanner from "@/components/DueTodayBanner";
+import IntroBanner from "@/components/IntroBanner";
 import StatsSummary from "@/components/StatsSummary";
 import { ARTICLES } from "@/lib/articles";
 import { SITE_PURPOSE, trainerGuides } from "@/lib/guides";
@@ -22,8 +23,14 @@ export default function HomePage() {
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link
-            href="/about/"
+            href="/intro/"
             className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+          >
+            Знакомство
+          </Link>
+          <Link
+            href="/about/"
+            className="rounded-full border border-[var(--line)] bg-white px-5 py-2.5 text-sm font-medium text-[var(--ink)] hover:border-[var(--accent)]"
           >
             Для чего сайт
           </Link>
@@ -34,12 +41,6 @@ export default function HomePage() {
             Начать с цифр
           </Link>
           <Link
-            href="/learn/"
-            className="rounded-full border border-[var(--line)] bg-white px-5 py-2.5 text-sm font-medium text-[var(--ink)] hover:border-[var(--accent)]"
-          >
-            Обучение
-          </Link>
-          <Link
             href="/program/"
             className="rounded-full border border-[var(--line)] bg-white px-5 py-2.5 text-sm font-medium text-[var(--ink)] hover:border-[var(--accent)]"
           >
@@ -47,6 +48,8 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      <IntroBanner />
 
       <DueTodayBanner />
 
