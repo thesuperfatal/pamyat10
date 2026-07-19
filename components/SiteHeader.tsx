@@ -1,11 +1,13 @@
 import Link from "next/link";
+import ProjectsBar from "@/components/ProjectsBar";
 import { SITE_NAME } from "@/lib/site";
 
 export default function SiteHeader() {
   return (
     <header className="border-b border-[var(--line)]/80 bg-white/70 backdrop-blur-md">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4">
-        <Link href="/" className="group">
+      <ProjectsBar current="memory" />
+      <div className="mx-auto flex max-w-3xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <Link href="/" className="group shrink-0">
           <span className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-[var(--ink)]">
             {SITE_NAME}
           </span>
@@ -13,7 +15,7 @@ export default function SiteHeader() {
             10 минут для памяти
           </span>
         </Link>
-        <nav className="flex items-center gap-4 text-sm text-[var(--muted)]">
+        <nav className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[var(--muted)]">
           <Link href="/#trainers" className="hover:text-[var(--accent)]">
             Тренажёры
           </Link>
